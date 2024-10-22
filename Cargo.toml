@@ -3,6 +3,10 @@ name = "rust-api"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+# Disables all warnings for the entire library
+warnings = "deny"
+
 [dependencies]
 actix-web = "4"
 serde = { version = "1.0.130", features = ["derive"] }

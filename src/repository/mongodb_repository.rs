@@ -6,19 +6,19 @@ use mongodb::{Client, Collection};
 
 use crate::models::{
     depth_history_model::DepthHistory, earnings_history_model::EarningsHistory,
-    rune_pool_history_model::RunePoolHistory, swags_history_model::SwapsHistory,
+    rune_pool_history_model::RunePoolHistory, swaps_history_model::SwapsHistory,
 };
 
 use super::{
     depth_history_repo::DepthHistoryRepository, earnings_history_repo::EarningsHistoryRepository,
-    rune_pool_history_repo::RunePoolHistoryRepository, swags_history_repo::SwagsHistoryRepository,
+    rune_pool_history_repo::RunePoolHistoryRepository, swaps_history_repo::SwapsHistoryRepository,
 };
 
 pub struct MongoDB {
-    depth_history_repo: DepthHistoryRepository,
-    earnings_history_repo: EarningsHistoryRepository,
-    rune_pool_history_repo: RunePoolHistoryRepository,
-    swags_history_repo: SwagsHistoryRepository,
+    pub depth_history_repo: DepthHistoryRepository,
+    pub earnings_history_repo: EarningsHistoryRepository,
+    pub rune_pool_history_repo: RunePoolHistoryRepository,
+    pub swaps_history_repo: SwapsHistoryRepository,
 }
 
 impl MongoDB {
@@ -50,7 +50,7 @@ impl MongoDB {
             .await
             .unwrap();
 
-        let swags_history_repo = SwagsHistoryRepository::init(swaps_history_collection)
+        let swaps_history_repo = SwapsHistoryRepository::init(swaps_history_collection)
             .await
             .unwrap();
 
@@ -62,7 +62,7 @@ impl MongoDB {
             depth_history_repo,
             earnings_history_repo,
             rune_pool_history_repo,
-            swags_history_repo,
+            swaps_history_repo,
         })
     }
 }

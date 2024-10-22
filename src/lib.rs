@@ -1,3 +1,7 @@
+#[allow(dead_code)]
+#[allow(unused_imports)]
+#[allow(unused_variables)]
+#[allow(unused_must_use)]
 pub mod models;
 pub mod repository;
 pub mod routes;
@@ -11,7 +15,7 @@ use actix_web::{
 use repository::mongodb_repository::MongoDB;
 use services::{
     depth_history_service, earnings_history_service, rune_pool_history_service,
-    swags_history_service,
+    swaps_history_service,
 };
 
 #[get("/")]
@@ -29,12 +33,12 @@ pub async fn init_server(db_data: Data<MongoDB>) -> std::io::Result<()> {
         App::new()
             .app_data(db_data.clone())
             .service(hello_world)
-            .service(web::scope("/depth_history").configure(depth_history_service::init))
-            .service(web::scope("/earnings_history").configure(earnings_history_service::init))
-            .service(web::scope("/swaps_history").configure(swags_history_service::init))
-            .service(web::scope("/rune_pool").configure(rune_pool_history_service::init))
+            .service(web::scope("/depth-history").configure(depth_history_service::init))
+            .service(web::scope("/earnings-history").configure(earnings_history_service::init))
+            .service(web::scope("/swaps-history").configure(swaps_history_service::init))
+            .service(web::scope("/rune-pool").configure(rune_pool_history_service::init))
     })
-    .bind(("localhost", 8080))?
+    .bind(("localhost", 3000))?
     .run()
     .await
 }
