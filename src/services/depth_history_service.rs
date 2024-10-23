@@ -75,7 +75,16 @@ pub async fn fetch_and_insert_depth_history(
     HttpResponse::Ok().body("Successfully fetched and inserted depth history data into database.")
 }
 
+#[get("/")]
+pub async fn depth_history_api(
+    db: Data<MongoDB>,
+    query: web::Query<QueryParameters>,
+) -> HttpResponse {
+    HttpResponse::Ok().body("has to fetch the requested data with the requested time line.")
+}
 pub fn init(config: &mut web::ServiceConfig) -> () {
-    config.service(fetch_and_insert_depth_history);
+    config
+        .service(fetch_and_insert_depth_history)
+        .service(depth_history_api);
     ()
 }

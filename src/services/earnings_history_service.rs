@@ -20,12 +20,10 @@ pub async fn fetch_and_insert_earnings_history(
     let count = params.count.unwrap_or_else(|| 400);
     let interval = params.interval.unwrap_or_else(|| String::from("year"));
 
-    let mut earnings_docs_count = 1;
+    let mut earnings_docs_count = 0;
 
     loop {
         let current_time = Utc::now().timestamp() as i64;
-
-        println!("{} {} ", start_time, current_time);
 
         if start_time >= current_time {
             println!("Start time has reached or exceeded the current time, breaking the loop.");
@@ -47,53 +45,13 @@ pub async fn fetch_and_insert_earnings_history(
                             .insert_earnings_history(&earnings_history)
                             .await
                         {
-                            Ok(_) => {
-                                println!("{}", count);
-                            }
+                            Ok(_) => (),
                             Err(_) => {
                                 eprintln!("Failed to insert earnings data into database");
                                 return HttpResponse::InternalServerError()
                                     .body("Failed to insert earnings data into database");
                             }
                         }
-                        // let mut earnings_history_2: Option<EarningsHistory> = None;
-                        // for pools in earnings_history.pools {
-                        //     if pools.pools == "BTC.BTC" {
-                        //         earnings_history_2 = Some(EarningsHistory {
-                        //             start_time: earnings_history.start_time,
-                        //             end_time: earnings_history.end_time,
-                        //             liquidity_fees: earnings_history.liquidity_fees,
-                        //             block_rewards: earnings_history.block_rewards,
-                        //             earnings: earnings_history.earnings,
-                        //             bonding_earnings: earnings_history.bonding_earnings,
-                        //             liquidity_earnings: earnings_history.liquidity_earnings,
-                        //             rune_price_usd: earnings_history.rune_price_usd,
-                        //             avg_node_count: earnings_history.avg_node_count,
-                        //             pools: vec![pools],
-                        //         });
-
-                        //         break;
-                        //     }
-                        // }
-
-                        // if let Some(valid_earnings_history) = earnings_history_2 {
-                        //     match db
-                        //         .earnings_history_repo
-                        //         .insert_earnings_history(&valid_earnings_history)
-                        //         .await
-                        //     {
-                        //         Ok(_) => {
-                        //             println!("{}", count);
-                        //         }
-                        //         Err(_) => {
-                        //             eprintln!("Failed to insert earnings data into database");
-                        //             return HttpResponse::InternalServerError()
-                        //                 .body("Failed to insert earnings data into database");
-                        //         }
-                        //     }
-                        // } else {
-                        //     break;
-                        // }
                     }
                 }
                 Err(e) => {

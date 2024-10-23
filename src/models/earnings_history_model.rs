@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EarningsHistoryPool {
-    pub pools: String,
+    pub pool: String,
     #[serde(deserialize_with = "deserialize_string_to_number")]
     pub asset_liquidity_fees: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
@@ -16,7 +16,7 @@ pub struct EarningsHistoryPool {
     #[serde(deserialize_with = "deserialize_string_to_number")]
     pub rewards: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
-    pub earnings_pool: f64,
+    pub earnings: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -27,8 +27,6 @@ pub async fn fetch_and_insert_swaps_history(
     loop {
         let current_time = Utc::now().timestamp() as i64;
 
-        println!("{} {} ", start_time, current_time);
-
         if start_time >= current_time {
             println!("Start time has reached or exceeded the current time, breaking the loop.");
             break;

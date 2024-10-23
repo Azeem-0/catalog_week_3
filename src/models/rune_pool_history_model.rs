@@ -9,8 +9,6 @@ pub struct RunePoolHistory {
     #[serde(deserialize_with = "deserialize_string_to_number")]
     pub end_time: i64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
-    pub depth: f64,
-    #[serde(deserialize_with = "deserialize_string_to_number")]
     pub count: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
     pub units: f64,

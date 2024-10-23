@@ -37,7 +37,7 @@ pub async fn init_server(db_data: Data<MongoDB>) -> std::io::Result<()> {
             .service(web::scope("/depth-history").configure(depth_history_service::init))
             .service(web::scope("/earnings-history").configure(earnings_history_service::init))
             .service(web::scope("/swaps-history").configure(swaps_history_service::init))
-            .service(web::scope("/rune-pool").configure(rune_pool_history_service::init))
+            .service(web::scope("/rune-pool-history").configure(rune_pool_history_service::init))
     })
     .bind(("localhost", 3000))?
     .run()
