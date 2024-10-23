@@ -2,6 +2,18 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct EarningsHistoryPool {
+    pub pools: String,
+    pub asset_liquidity_fees: String,
+    pub rune_liquidity_fees: String,
+    pub total_liquidity_fees_rune: String,
+    pub saver_earning: String,
+    pub rewards: String,
+    pub earnings_pool: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct EarningsHistory {
     pub start_time: String,
     pub end_time: String,
@@ -13,13 +25,7 @@ pub struct EarningsHistory {
     pub avg_node_count: String,
     #[serde(rename = "runePriceUSD")]
     pub rune_price_usd: String,
-    pub pool: String,
-    pub asset_liquidity_fees: String,
-    pub rune_liquidity_fees: String,
-    pub total_liquidity_fees_rune: String,
-    pub saver_earning: String,
-    pub rewards: String,
-    pub earnings_pool: String,
+    pub pools: Vec<EarningsHistoryPool>,
 }
 
 #[derive(Serialize, Deserialize)]

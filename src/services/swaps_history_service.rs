@@ -10,7 +10,7 @@ use crate::{
 
 #[get("/fetch-swaps")]
 pub async fn fetch_swaps_history(db: Data<MongoDB>) -> HttpResponse {
-    let mut start_time = String::from("1648771200");
+    let mut start_time = String::from("1650585600");
     let count = 400;
 
     loop {
@@ -19,12 +19,29 @@ pub async fn fetch_swaps_history(db: Data<MongoDB>) -> HttpResponse {
             count, start_time
         );
 
+        let mut swaps_count = 1;
+
         match reqwest::get(&url).await {
             Ok(response) => match response.json::<SwapsHistoryResponse>().await {
                 Ok(resp) => {
                     start_time = resp.meta.end_time.clone();
-                    for depth in resp.intervals {
-                        db.swaps_history_repo.insert_swaps_history(&depth).await;
+                    for swaps_history in resp.intervals {
+                        match db
+                            .swaps_history_repo
+                            .insert_swaps_history(&swaps_history)
+                            .await
+                        {
+                            Ok(_) => {
+                                println!("inserted {} docs", swaps_count);
+                            }
+                            Err(_) => {
+                                eprintln!("Failed to insert data into database");
+                                return HttpResponse::InternalServerError()
+                                    .body("Failed to insert data into database");
+                            }
+                        }
+
+                        swaps_count += 1;
                     }
                 }
                 Err(e) => {

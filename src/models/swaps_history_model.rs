@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SwapsHistory {
     pub start_time: String,
@@ -50,7 +50,7 @@ pub struct SwapsHistory {
     #[serde(rename = "runePriceUSD")]
     pub rune_price_usd: String,
 }
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SwapsHistoryMeta {
     pub start_time: String,
@@ -101,7 +101,7 @@ pub struct SwapsHistoryMeta {
     pub rune_price_usd: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SwapsHistoryResponse {
     pub meta: SwapsHistoryMeta,

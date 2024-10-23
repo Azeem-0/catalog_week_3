@@ -13,26 +13,6 @@ impl DepthHistoryRepository {
         Ok(DepthHistoryRepository { col })
     }
 
-    pub async fn temp_delete(&self) -> Result<(), mongodb::error::Error> {
-        // Define your query here to match the documents you want to delete
-        let query = doc! { "start_time": { "$gt": "1729602378" } }; // Example query
-
-        // Optional delete options
-        let delete_options = DeleteOptions::builder().build();
-
-        // Perform the delete operation
-        match self.col.delete_many(query, delete_options).await {
-            Ok(result) => {
-                println!("{} documents deleted", result.deleted_count);
-                Ok(())
-            }
-            Err(e) => {
-                eprintln!("Error occurred while deleting documents: {:?}", e);
-                Err(e)
-            }
-        }
-    }
-
     pub async fn insert_depth_history(
         &self,
         depth_history: &DepthHistory,

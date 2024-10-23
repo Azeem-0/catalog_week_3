@@ -17,7 +17,7 @@ impl SwapsHistoryRepository {
         &self,
         swaps_history: &SwapsHistory,
     ) -> Result<InsertOneResult, Box<dyn Error>> {
-        let insert_details = self
+        let insert_details: InsertOneResult = self
             .col
             .insert_one(swaps_history, None)
             .await
