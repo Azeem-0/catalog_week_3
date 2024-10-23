@@ -23,9 +23,9 @@ pub struct EarningsHistoryPool {
 #[serde(rename_all = "camelCase")]
 pub struct EarningsHistory {
     #[serde(deserialize_with = "deserialize_string_to_number")]
-    pub start_time: i64,
+    pub start_time: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
-    pub end_time: i64,
+    pub end_time: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
     pub liquidity_fees: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
@@ -48,9 +48,9 @@ pub struct EarningsHistory {
 #[serde(rename_all = "camelCase")]
 pub struct EarningsHistoryMeta {
     #[serde(deserialize_with = "deserialize_string_to_number")]
-    pub start_time: i64,
+    pub start_time: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
-    pub end_time: i64,
+    pub end_time: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
     pub liquidity_fees: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]

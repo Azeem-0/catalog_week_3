@@ -6,9 +6,9 @@ use crate::utils::deserialize_util::deserialize_string_to_number;
 #[serde(rename_all = "camelCase")]
 pub struct DepthHistory {
     #[serde(deserialize_with = "deserialize_string_to_number")]
-    pub start_time: i64,
+    pub start_time: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
-    pub end_time: i64,
+    pub end_time: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
     pub asset_depth: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
@@ -36,9 +36,9 @@ pub struct DepthHistory {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct DepthHistoryMeta {
     #[serde(deserialize_with = "deserialize_string_to_number")]
-    pub start_time: i64,
+    pub start_time: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
-    pub end_time: i64,
+    pub end_time: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
     pub price_shift_loss: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]

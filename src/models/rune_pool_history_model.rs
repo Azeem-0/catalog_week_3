@@ -5,9 +5,9 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct RunePoolHistory {
     #[serde(deserialize_with = "deserialize_string_to_number")]
-    pub start_time: i64,
+    pub start_time: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
-    pub end_time: i64,
+    pub end_time: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
     pub count: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
@@ -18,9 +18,9 @@ pub struct RunePoolHistory {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct RunePoolHistoryMeta {
     #[serde(deserialize_with = "deserialize_string_to_number")]
-    pub start_time: i64,
+    pub start_time: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
-    pub end_time: i64,
+    pub end_time: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
     pub start_units: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]

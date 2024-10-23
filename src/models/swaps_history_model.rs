@@ -5,9 +5,9 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct SwapsHistory {
     #[serde(deserialize_with = "deserialize_string_to_number")]
-    pub start_time: i64,
+    pub start_time: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
-    pub end_time: i64,
+    pub end_time: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
     pub to_asset_count: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
@@ -94,9 +94,9 @@ pub struct SwapsHistory {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SwapsHistoryMeta {
     #[serde(deserialize_with = "deserialize_string_to_number")]
-    pub start_time: i64,
+    pub start_time: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
-    pub end_time: i64,
+    pub end_time: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
     pub to_asset_count: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
