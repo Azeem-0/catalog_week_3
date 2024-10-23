@@ -14,9 +14,9 @@ impl TimeInterval {
             TimeInterval::Hour => 3600,       // 1 hour
             TimeInterval::Day => 86400,       // 1 day
             TimeInterval::Week => 604800,     // 1 week
-            TimeInterval::Month => 2592000,   // ~30 days
-            TimeInterval::Quarter => 7776000, // ~3 months
-            TimeInterval::Year => 31536000,   // 1 year
+            TimeInterval::Month => 2678400,   // ~30 days
+            TimeInterval::Quarter => 7948800, // ~3 months
+            TimeInterval::Year => 31822400,   // 1 year
         }
     }
 

@@ -3,7 +3,8 @@ use actix_web::web;
 use actix_web::{get, web::Data, HttpResponse};
 use chrono::Utc;
 
-use crate::models::query_parameters::QueryParameters;
+use crate::models::earnings_history_model::{EarningsHistory, EarningsHistoryPool};
+use crate::utils::query_parameters::QueryParameters;
 use crate::{
     models::earnings_history_model::EarningsHistoryResponse,
     repository::mongodb_repository::MongoDB,
@@ -35,23 +36,80 @@ pub async fn fetch_and_insert_earnings_history(
             interval, count, from
         );
 
+        println!("{}", url);
+
         match reqwest::get(&url).await {
             Ok(response) => match response.json::<EarningsHistoryResponse>().await {
                 Ok(resp) => {
                     from = resp.meta.end_time.clone();
+
                     for earnings_history in resp.intervals {
-                        match db
+                        let earnings_history_2 = EarningsHistory {
+                            avg_node_count: earnings_history.avg_node_count,
+                            block_rewards: earnings_history.avg_node_count,
+                            bonding_earnings: earnings_history.bonding_earnings,
+                            earnings: earnings_history.earnings,
+                            end_time: earnings_history.end_time,
+                            liquidity_earnings: earnings_history.liquidity_earnings,
+                            liquidity_fees: earnings_history.liquidity_fees,
+                            rune_price_usd: earnings_history.rune_price_usd,
+                            start_time: earnings_history.start_time,
+                            pools: None,
+                        };
+
+                        let earnings_history_id = match db
                             .earnings_history_repo
-                            .insert_earnings_history(&earnings_history)
+                            .insert_earnings_history(&earnings_history_2)
                             .await
                         {
-                            Ok(_) => (),
+                            Ok(result) => result.inserted_id.as_object_id().unwrap(),
                             Err(_) => {
                                 eprintln!("Failed to insert earnings data into database");
                                 return HttpResponse::InternalServerError()
                                     .body("Failed to insert earnings data into database");
                             }
+                        };
+
+                        for pool in earnings_history.pools.unwrap() {
+                            let pool_with_reference = EarningsHistoryPool {
+                                start_time: Some(earnings_history_2.start_time),
+                                end_time: Some(earnings_history_2.end_time),
+                                asset_liquidity_fees: pool.asset_liquidity_fees,
+                                earnings: pool.earnings,
+                                rewards: pool.rewards,
+                                rune_liquidity_fees: pool.rune_liquidity_fees,
+                                saver_earning: pool.saver_earning,
+                                total_liquidity_fees_rune: pool.total_liquidity_fees_rune,
+                                earnings_history: Some(earnings_history_id),
+                                pool: pool.pool,
+                            };
+
+                            match db
+                                .earnings_history_repo
+                                .insert_earnings_history_pool(&pool_with_reference)
+                                .await
+                            {
+                                Ok(_) => (),
+                                Err(_) => {
+                                    eprintln!("Failed to insert pool data into database");
+                                    return HttpResponse::InternalServerError()
+                                        .body("Failed to insert pool data into database");
+                                }
+                            }
                         }
+
+                        // match db
+                        //     .earnings_history_repo
+                        //     .insert_earnings_history(&earnings_history)
+                        //     .await
+                        // {
+                        //     Ok(_) => (),
+                        //     Err(_) => {
+                        //         eprintln!("Failed to insert earnings data into database");
+                        //         return HttpResponse::InternalServerError()
+                        //             .body("Failed to insert earnings data into database");
+                        //     }
+                        // }
                     }
                 }
                 Err(e) => {
@@ -72,7 +130,27 @@ pub async fn fetch_and_insert_earnings_history(
     HttpResponse::Ok().body("Successfully fetched and inserted swaps history data into database.")
 }
 
+#[get("")]
+pub async fn earnings_history_api(
+    db: Data<MongoDB>,
+    query: web::Query<QueryParameters>,
+) -> HttpResponse {
+    let (from, count, interval, to, page, sort_by, pool) = query.process_query_parameters();
+
+    println!("{} {} {} {} {} {}", from, count, to, pool, sort_by, page);
+
+    let result = db
+        .earnings_history_repo
+        .fetch_earnings_history_data(from, to, count, interval, page, sort_by, pool)
+        .await
+        .unwrap_or_else(|e| vec![]);
+
+    HttpResponse::Ok().json(result)
+}
+
 pub fn init(config: &mut web::ServiceConfig) -> () {
-    config.service(fetch_and_insert_earnings_history);
+    config
+        .service(fetch_and_insert_earnings_history)
+        .service(earnings_history_api);
     ()
 }

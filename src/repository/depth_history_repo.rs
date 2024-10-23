@@ -6,7 +6,7 @@ use mongodb::{
 };
 use std::error::Error;
 
-use crate::models::depth_history_model::DepthHistory;
+use crate::{models::depth_history_model::DepthHistory, utils::time_interval::TimeInterval};
 
 pub struct DepthHistoryRepository {
     col: Collection<DepthHistory>,
@@ -35,33 +35,54 @@ impl DepthHistoryRepository {
         from: f64,
         to: f64,
         count: f64,
+        interval: TimeInterval,
+        page: i64,
+        sort_by: String,
     ) -> Result<Vec<DepthHistory>, mongodb::error::Error> {
         let filter = doc! {
             "startTime": { "$gte": from },
             "endTime":{"$lte":to},
         };
 
+        let mut sort_by = sort_by;
+
+        if !DepthHistory::has_field(&sort_by) {
+            sort_by = String::from("startTime");
+        }
+
+        let sort_stage = doc! { &sort_by: -1 };
+
+        let skip = (page - 1).max(0) * (count as i64);
+
+        let interval_seconds = interval.as_seconds();
+
         let pipeline = vec![
-            doc! { "$match": filter }, // Use the filter here
-            doc! { "$group": {
-                "_id": {
-                    "$toDate": {
-                        "$subtract": ["$startTime", { "$mod": ["$startTime", 86400] }]
-                    }
-                },
-                "assetDepth": { "$last": "$assetDepth" },
-                "runeDepth": { "$last": "$runeDepth" },
-                "assetPrice": { "$last": "$assetPrice" },
-                "assetPriceUSD": { "$last": "$assetPriceUSD" },
-                "liquidityUnits": { "$last": "$liquidityUnits" },
-                "membersCount": { "$last": "$membersCount" },
-                "synthUnits": { "$last": "$synthUnits" },
-                "synthSupply": { "$last": "$synthSupply" },
-                "units": { "$last": "$units" },
-                "luvi": { "$last": "$luvi" },
-                "startTime": { "$first": "$startTime" },
-                "endTime": { "$last": "$endTime" }
-            }},
+            doc! { "$match": filter },
+            doc! { "$sort": { "startTime": 1 } },
+            doc! {
+                "$group": {
+                    "_id": {
+                        "$toDate": {
+                            "$subtract": [
+                                "$startTime",
+                                { "$mod": ["$startTime", interval_seconds] }
+                            ]
+                        }
+                    },
+                    "assetDepth": { "$last": "$assetDepth" },
+                    "runeDepth": { "$last": "$runeDepth" },
+                    "assetPrice": { "$last": "$assetPrice" },
+                    "assetPriceUSD": { "$last": "$assetPriceUSD" },
+                    "liquidityUnits": { "$last": "$liquidityUnits" },
+                    "membersCount": { "$last": "$membersCount" },
+                    "synthUnits": { "$last": "$synthUnits" },
+                    "synthSupply": { "$last": "$synthSupply" },
+                    "units": { "$last": "$units" },
+                    "luvi": { "$last": "$luvi" },
+                    "startTime": { "$first": "$startTime" },
+                    "endTime": { "$last": "$endTime" }
+                }
+            },
             doc! { "$project": {
                 "_id": 0,
                 "startTime": 1,
@@ -77,7 +98,10 @@ impl DepthHistoryRepository {
                 "units": 1,
                 "luvi": 1
             }},
+            doc! {"$sort" : {"startTime" : 1}},
+            doc! {"$skip" : skip},
             doc! { "$limit": count as i64 },
+            doc! {"$sort" : sort_stage},
         ];
 
         let cursor = self.col.aggregate(pipeline, None).await?;

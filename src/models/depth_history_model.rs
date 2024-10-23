@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::utils::deserialize_util::deserialize_string_to_number;
@@ -32,6 +34,28 @@ pub struct DepthHistory {
     pub luvi: f64,
 }
 
+impl DepthHistory {
+    pub fn has_field(field: &str) -> bool {
+        let camel_to_snake_fields: HashSet<&str> = vec![
+            "startTime",
+            "endTime",
+            "assetDepth",
+            "runeDepth",
+            "assetPrice",
+            "assetPriceUSD",
+            "liquidityUnits",
+            "membersCount",
+            "synthUnits",
+            "synthSupply",
+            "units",
+            "luvi",
+        ]
+        .into_iter()
+        .collect();
+
+        camel_to_snake_fields.contains(field)
+    }
+}
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct DepthHistoryMeta {

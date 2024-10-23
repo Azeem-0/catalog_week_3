@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::utils::deserialize_util::deserialize_string_to_number;
 use serde::{Deserialize, Serialize};
 
@@ -12,6 +14,16 @@ pub struct RunePoolHistory {
     pub count: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
     pub units: f64,
+}
+
+impl RunePoolHistory {
+    pub fn has_field(field: &str) -> bool {
+        let camel_to_snake_fields: HashSet<&str> = vec!["startTime", "endTime", "count", "units"]
+            .into_iter()
+            .collect();
+
+        camel_to_snake_fields.contains(field)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]

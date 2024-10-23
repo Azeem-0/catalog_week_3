@@ -8,8 +8,9 @@ use actix_web::{
 use chrono::Utc;
 
 use crate::{
-    models::{depth_history_model::DepthHistoryResponse, query_parameters::QueryParameters},
+    models::depth_history_model::DepthHistoryResponse,
     repository::mongodb_repository::MongoDB,
+    utils::{query_parameters::QueryParameters, time_interval::TimeInterval},
 };
 
 #[get("/fetch-and-insert-depth")]
@@ -82,21 +83,16 @@ pub async fn depth_history_api(
     db: Data<MongoDB>,
     query: web::Query<QueryParameters>,
 ) -> HttpResponse {
-    let params = query.into_inner();
+    let (from, count, interval, to, page, sort_by, pool) = query.process_query_parameters();
 
-    let mut from: f64 = params.from.clone().unwrap_or_else(|| 1648771200.0);
-    let count = params.count.unwrap_or_else(|| 400.0);
-    let interval = params.interval.unwrap_or_else(|| String::from("year"));
-    let to = params.to.unwrap_or_else(|| 1729666800.0);
-    let pool = params.pool.unwrap_or_else(|| String::from("BTC.BTC"));
+    println!("{} {} {} {} {} {}", from, count, to, pool, sort_by, page);
 
     let result = db
         .depth_history_repo
-        .fetch_depth_history_data(from, to, count)
+        .fetch_depth_history_data(from, to, count, interval, page, sort_by)
         .await
         .unwrap_or_else(|e| vec![]);
 
-    // break
     HttpResponse::Ok().json(result)
 }
 pub fn init(config: &mut web::ServiceConfig) -> () {

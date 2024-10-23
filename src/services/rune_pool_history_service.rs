@@ -6,8 +6,8 @@ use actix_web::{
 use chrono::Utc;
 
 use crate::{
-    models::{query_parameters::QueryParameters, rune_pool_history_model::RunePoolHistoryResponse},
-    repository::mongodb_repository::MongoDB,
+    models::rune_pool_history_model::RunePoolHistoryResponse,
+    repository::mongodb_repository::MongoDB, utils::query_parameters::QueryParameters,
 };
 
 #[get("/fetch-and-insert-rune-pool")]
@@ -66,7 +66,28 @@ pub async fn fetch_and_insert_rune_pool_history(
     HttpResponse::Ok()
         .body("Successfully fetched and inserted rune pool history data into database.")
 }
+
+#[get("")]
+pub async fn rune_pool_history_api(
+    db: Data<MongoDB>,
+    query: web::Query<QueryParameters>,
+) -> HttpResponse {
+    let (from, count, interval, to, page, sort_by, pool) = query.process_query_parameters();
+
+    println!("{} {} {} {} {} {}", from, count, to, pool, sort_by, page);
+
+    let result = db
+        .rune_pool_history_repo
+        .fetch_rune_pool_history_data(from, to, count, interval, page, sort_by)
+        .await
+        .unwrap_or_else(|e| vec![]);
+
+    HttpResponse::Ok().json(result)
+}
+
 pub fn init(config: &mut web::ServiceConfig) -> () {
-    config.service(fetch_and_insert_rune_pool_history);
+    config
+        .service(fetch_and_insert_rune_pool_history)
+        .service(rune_pool_history_api);
     ()
 }

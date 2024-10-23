@@ -6,8 +6,9 @@ use actix_web::{
 use chrono::Utc;
 
 use crate::{
-    models::{query_parameters::QueryParameters, swaps_history_model::SwapsHistoryResponse},
+    models::swaps_history_model::SwapsHistoryResponse,
     repository::mongodb_repository::MongoDB,
+    utils::{query_parameters::QueryParameters, time_interval::TimeInterval},
 };
 
 #[get("/fetch-and-insert-swaps")]
@@ -73,7 +74,28 @@ pub async fn fetch_and_insert_swaps_history(
 
     HttpResponse::Ok().body("Successfully fetched and inserted swaps history data into database.")
 }
+
+#[get("/BTC.BTC")]
+pub async fn swaps_history_api(
+    db: Data<MongoDB>,
+    query: web::Query<QueryParameters>,
+) -> HttpResponse {
+    let (from, count, interval, to, page, sort_by, pool) = query.process_query_parameters();
+
+    println!("{} {} {} {} {} {}", from, count, to, pool, sort_by, page);
+
+    let result = db
+        .swaps_history_repo
+        .fetch_swaps_history_data(from, to, count, interval, page, sort_by)
+        .await
+        .unwrap_or_else(|e| vec![]);
+
+    HttpResponse::Ok().json(result)
+}
+
 pub fn init(config: &mut web::ServiceConfig) -> () {
-    config.service(fetch_and_insert_swaps_history);
+    config
+        .service(fetch_and_insert_swaps_history)
+        .service(swaps_history_api);
     ()
 }

@@ -5,8 +5,10 @@ use dotenv::dotenv;
 use mongodb::{Client, Collection};
 
 use crate::models::{
-    depth_history_model::DepthHistory, earnings_history_model::EarningsHistory,
-    rune_pool_history_model::RunePoolHistory, swaps_history_model::SwapsHistory,
+    depth_history_model::DepthHistory,
+    earnings_history_model::{EarningsHistory, EarningsHistoryPool},
+    rune_pool_history_model::RunePoolHistory,
+    swaps_history_model::SwapsHistory,
 };
 
 use super::{
@@ -40,15 +42,22 @@ impl MongoDB {
         let depth_history_collection: Collection<DepthHistory> = db.collection("depth_history");
         let earnings_history_collection: Collection<EarningsHistory> =
             db.collection("earnings_history");
+
+        let earnings_history_pool_collection: Collection<EarningsHistoryPool> =
+            db.collection("earnings_history_pool");
+
         let swaps_history_collection: Collection<SwapsHistory> = db.collection("swaps_history");
         let rune_pool_collection: Collection<RunePoolHistory> = db.collection("rune_pool_history");
 
         let depth_history_repo = DepthHistoryRepository::init(depth_history_collection)
             .await
             .unwrap();
-        let earnings_history_repo = EarningsHistoryRepository::init(earnings_history_collection)
-            .await
-            .unwrap();
+        let earnings_history_repo = EarningsHistoryRepository::init(
+            earnings_history_collection,
+            earnings_history_pool_collection,
+        )
+        .await
+        .unwrap();
 
         let swaps_history_repo = SwapsHistoryRepository::init(swaps_history_collection)
             .await

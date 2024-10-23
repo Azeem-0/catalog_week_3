@@ -1,5 +1,6 @@
 use crate::utils::deserialize_util::deserialize_string_to_number;
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -88,6 +89,55 @@ pub struct SwapsHistory {
     #[serde(deserialize_with = "deserialize_string_to_number")]
     #[serde(rename = "runePriceUSD")]
     pub rune_price_usd: f64,
+}
+
+impl SwapsHistory {
+    pub fn has_field(field: &str) -> bool {
+        let camel_to_snake_fields: HashSet<&str> = vec![
+            "startTime",
+            "endTime",
+            "toAssetCount",
+            "toRuneCount",
+            "toTradeCount",
+            "fromTradeCount",
+            "synthMintCount",
+            "synthRedeemCount",
+            "totalCount",
+            "toAssetVolume",
+            "toRuneVolume",
+            "toTradeVolume",
+            "fromTradeVolume",
+            "synthMintVolume",
+            "synthRedeemVolume",
+            "totalVolume",
+            "toAssetVolumeUSD",
+            "toRuneVolumeUSD",
+            "toTradeVolumeUSD",
+            "fromTradeVolumeUSD",
+            "synthMintVolumeUSD",
+            "synthRedeemVolumeUSD",
+            "totalVolumeUSD",
+            "toAssetFees",
+            "toRuneFees",
+            "toTradeFees",
+            "fromTradeFees",
+            "synthMintFees",
+            "synthRedeemFees",
+            "totalFees",
+            "toAssetAverageSlip",
+            "toRuneAverageSlip",
+            "toTradeAverageSlip",
+            "fromTradeAverageSlip",
+            "synthMintAverageSlip",
+            "synthRedeemAverageSlip",
+            "averageSlip",
+            "runePriceUSD",
+        ]
+        .into_iter()
+        .collect();
+
+        camel_to_snake_fields.contains(field)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
