@@ -1,28 +1,40 @@
+use crate::utils::deserialize_util::deserialize_string_to_number;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RunePoolHistory {
-    pub start_time: String,
-    pub end_time: String,
-    pub depth: String,
-    pub count: String,
-    pub units: String,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub start_time: i64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub end_time: i64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub depth: f64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub count: f64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub units: f64,
 }
 
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct RunePoolHistoryMeta {
-    pub start_time: String,
-    pub end_time: String,
-    pub start_units: String,
-    pub start_count: String,
-    pub end_units: String,
-    pub end_count: String,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub start_time: i64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub end_time: i64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub start_units: f64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub start_count: f64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub end_units: f64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub end_count: f64,
 }
 
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct RunePoolHistoryResponse {
     pub meta: RunePoolHistoryMeta,
     pub intervals: Vec<RunePoolHistory>,

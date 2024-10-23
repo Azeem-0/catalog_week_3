@@ -5,14 +5,23 @@ use actix_web::{
 };
 
 use crate::{
-    models::rune_pool_history_model::RunePoolHistoryResponse,
+    models::{query_parameters::QueryParameters, rune_pool_history_model::RunePoolHistoryResponse},
     repository::mongodb_repository::MongoDB,
 };
 
 #[get("/fetch-rune-pool")]
-pub async fn fetch_rune_pool_history(db: Data<MongoDB>) -> HttpResponse {
-    let mut start_time = String::from("1648771200");
-    let count = 400;
+pub async fn fetch_and_insert_rune_pool_history(
+    db: Data<MongoDB>,
+    query: web::Query<QueryParameters>,
+) -> HttpResponse {
+    let params = query.into_inner();
+
+    let mut start_time = params.from.clone().unwrap_or_else(|| 1648771200);
+    let count = params.count.unwrap_or_else(|| 400);
+    let interval = params.interval.unwrap_or_else(|| String::from("year"));
+    let pool = params.pool.unwrap_or_else(|| String::from("BTC.BTC"));
+
+    let mut rune_pool_docs_count = 1;
 
     loop {
         let url = format!(
@@ -23,7 +32,7 @@ pub async fn fetch_rune_pool_history(db: Data<MongoDB>) -> HttpResponse {
         match reqwest::get(&url).await {
             Ok(response) => match response.json::<RunePoolHistoryResponse>().await {
                 Ok(resp) => {
-                    start_time = resp.meta.end_time.clone();
+                    // start_time = resp.meta.end_time.clone();
                     for rune_pool in resp.intervals {
                         let _ = db
                             .rune_pool_history_repo
@@ -47,6 +56,6 @@ pub async fn fetch_rune_pool_history(db: Data<MongoDB>) -> HttpResponse {
     HttpResponse::Ok().body("Riya ekkada?")
 }
 pub fn init(config: &mut web::ServiceConfig) -> () {
-    config.service(fetch_rune_pool_history);
+    config.service(fetch_and_insert_rune_pool_history);
     ()
 }

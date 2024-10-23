@@ -1,46 +1,72 @@
+use crate::utils::deserialize_util::deserialize_string_to_number;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EarningsHistoryPool {
     pub pools: String,
-    pub asset_liquidity_fees: String,
-    pub rune_liquidity_fees: String,
-    pub total_liquidity_fees_rune: String,
-    pub saver_earning: String,
-    pub rewards: String,
-    pub earnings_pool: String,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub asset_liquidity_fees: f64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub rune_liquidity_fees: f64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub total_liquidity_fees_rune: f64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub saver_earning: f64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub rewards: f64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub earnings_pool: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EarningsHistory {
-    pub start_time: String,
-    pub end_time: String,
-    pub liquidity_fees: String,
-    pub block_rewards: String,
-    pub earnings: String,
-    pub bonding_earnings: String,
-    pub liquidity_earnings: String,
-    pub avg_node_count: String,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub start_time: i64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub end_time: i64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub liquidity_fees: f64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub block_rewards: f64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub earnings: f64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub bonding_earnings: f64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub liquidity_earnings: f64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub avg_node_count: f64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
     #[serde(rename = "runePriceUSD")]
-    pub rune_price_usd: String,
+    pub rune_price_usd: f64,
     pub pools: Vec<EarningsHistoryPool>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EarningsHistoryMeta {
-    pub start_time: String,
-    pub end_time: String,
-    pub liquidity_fees: String,
-    pub block_rewards: String,
-    pub earnings: String,
-    pub bonding_earnings: String,
-    pub liquidity_earnings: String,
-    pub avg_node_count: String,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub start_time: i64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub end_time: i64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub liquidity_fees: f64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub block_rewards: f64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub earnings: f64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub bonding_earnings: f64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub liquidity_earnings: f64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
+    pub avg_node_count: f64,
+    #[serde(deserialize_with = "deserialize_string_to_number")]
     #[serde(rename = "runePriceUSD")]
-    pub rune_price_usd: String,
+    pub rune_price_usd: f64,
+    pub pools: Vec<EarningsHistoryPool>,
 }
 
 #[derive(Serialize, Deserialize)]

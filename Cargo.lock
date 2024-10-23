@@ -2633,12 +2633,14 @@ version = "0.1.0"
 dependencies = [
  "actix-web",
  "cargo-watch",
+ "chrono",
  "dotenv",
  "futures",
  "mongodb",
  "reqwest",
  "serde",
  "serde_json",
+ "serde_with",
 ]
 
 [[package]]
