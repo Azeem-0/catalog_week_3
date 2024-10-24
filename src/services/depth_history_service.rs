@@ -13,6 +13,64 @@ use crate::{
     utils::{query_parameters::QueryParameters, time_interval::TimeInterval},
 };
 
+pub async fn fetch_and_update_depth_history(
+    db: Data<MongoDB>,
+    from: f64,
+    count: f64,
+    interval: String,
+    pool: String,
+) -> bool {
+    let mut depth_docs_count = 1;
+    let mut from = from;
+
+    loop {
+        let current_time = Utc::now().timestamp() as f64;
+
+        if from >= current_time {
+            println!("Start time has reached or exceeded the current time, breaking the loop.");
+            break;
+        }
+
+        let url = format!(
+            "https://midgard.ninerealms.com/v2/history/depths/{}?interval={}&count={}&from={}",
+            pool, interval, count, from
+        );
+
+        match reqwest::get(&url).await {
+            Ok(response) => match response.json::<DepthHistoryResponse>().await {
+                Ok(resp) => {
+                    from = resp.meta.end_time.clone();
+                    for depth_history in resp.intervals {
+                        match db
+                            .depth_history_repo
+                            .insert_depth_history(&depth_history)
+                            .await
+                        {
+                            Ok(_) => (),
+                            Err(_) => {
+                                eprintln!("Failed to insert depth history data into database");
+                                return false;
+                            }
+                        }
+
+                        depth_docs_count += 1;
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Failed to deserialize response: {:?}", e);
+                    return false;
+                }
+            },
+            Err(e) => {
+                eprintln!("Failed to fetch data: {:?}", e);
+                return false;
+            }
+        }
+    }
+
+    true
+}
+
 #[get("/fetch-and-insert-depth")]
 pub async fn fetch_and_insert_depth_history(
     db: Data<MongoDB>,
@@ -91,10 +149,11 @@ pub async fn depth_history_api(
         .depth_history_repo
         .fetch_depth_history_data(from, to, count, interval, page, sort_by)
         .await
-        .unwrap_or_else(|e| vec![]);
+        .unwrap_or_else(|_| vec![]);
 
     HttpResponse::Ok().json(result)
 }
+
 pub fn init(config: &mut web::ServiceConfig) -> () {
     config
         .service(fetch_and_insert_depth_history)

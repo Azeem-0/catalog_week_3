@@ -3,7 +3,7 @@ use serde::Deserialize;
 
 use super::time_interval::TimeInterval;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct QueryParameters {
     pub from: Option<f64>,
     pub count: Option<f64>,

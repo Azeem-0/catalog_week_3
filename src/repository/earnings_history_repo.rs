@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use futures::{StreamExt, TryStreamExt};
+use futures::TryStreamExt;
 use mongodb::{
     bson::{doc, Document},
     results::InsertOneResult,
@@ -81,6 +81,7 @@ impl EarningsHistoryRepository {
 
         let pipeline = vec![
             doc! { "$match": filter },
+            doc! {"$sort" : {"startTime" : 1}},
             doc! {
                 "$lookup": {
                     "from": "earnings_history",
@@ -159,22 +160,5 @@ impl EarningsHistoryRepository {
             .collect::<Result<Vec<EarningsHistoryFlattenResponse>, _>>()?;
 
         Ok(results)
-
-        // let mut cursor = self.col.find(filter, None).await?;
-
-        // let mut results = Vec::new();
-
-        // while let Some(result) = cursor.next().await {
-        //     match result {
-        //         Ok(document) => results.push(document),
-        //         Err(e) => eprintln!("Error fetching document: {:?}", e),
-        //     }
-
-        //     if results.len() as f64 >= count {
-        //         break;
-        //     }
-        // }
-
-        // Ok(results)
     }
 }

@@ -1,6 +1,7 @@
-use futures::{stream::TryStreamExt, StreamExt};
+use futures::stream::TryStreamExt;
 use mongodb::{
     bson::{doc, Document},
+    options::FindOneOptions,
     results::InsertOneResult,
     Collection,
 };
@@ -9,7 +10,7 @@ use std::error::Error;
 use crate::{models::depth_history_model::DepthHistory, utils::time_interval::TimeInterval};
 
 pub struct DepthHistoryRepository {
-    col: Collection<DepthHistory>,
+    pub col: Collection<DepthHistory>,
 }
 
 impl DepthHistoryRepository {
@@ -120,22 +121,5 @@ impl DepthHistoryRepository {
             .collect::<Result<Vec<DepthHistory>, _>>()?;
 
         Ok(results)
-
-        // let mut cursor = self.col.find(filter, None).await?;
-
-        // let mut results = Vec::new();
-
-        // while let Some(result) = cursor.next().await {
-        //     match result {
-        //         Ok(document) => results.push(document),
-        //         Err(e) => eprintln!("Error fetching document: {:?}", e),
-        //     }
-
-        //     if results.len() as f64 >= count {
-        //         break;
-        //     }
-        // }
-
-        // Ok(results)
     }
 }

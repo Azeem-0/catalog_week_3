@@ -11,6 +11,63 @@ use crate::{
     utils::{query_parameters::QueryParameters, time_interval::TimeInterval},
 };
 
+pub async fn fetch_and_update_swaps_history(
+    db: &Data<MongoDB>,
+    from: f64,
+    count: f64,
+    interval: String,
+    pool: String,
+) -> bool {
+    let mut swaps_docs_count = 0;
+    let mut from = from;
+
+    loop {
+        let current_time = Utc::now().timestamp() as f64;
+
+        if from >= current_time {
+            println!("Start time has reached or exceeded the current time, breaking the loop.");
+            break;
+        }
+
+        let url = format!(
+            "https://midgard.ninerealms.com/v2/history/swaps?pool={}&interval={}&count={}&from={}",
+            pool, interval, count, from
+        );
+
+        match reqwest::get(&url).await {
+            Ok(response) => match response.json::<SwapsHistoryResponse>().await {
+                Ok(resp) => {
+                    from = resp.meta.end_time.clone();
+                    for swaps_history in resp.intervals {
+                        match db
+                            .swaps_history_repo
+                            .insert_swaps_history(&swaps_history)
+                            .await
+                        {
+                            Ok(_) => (),
+                            Err(_) => {
+                                eprintln!("Failed to insert data into database");
+                                return false;
+                            }
+                        }
+                        swaps_docs_count += 1;
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Failed to deserialize response: {:?}", e);
+                    return false;
+                }
+            },
+            Err(e) => {
+                eprintln!("Failed to fetch data: {:?}", e);
+                return false;
+            }
+        }
+    }
+
+    true
+}
+
 #[get("/fetch-and-insert-swaps")]
 pub async fn fetch_and_insert_swaps_history(
     db: Data<MongoDB>,

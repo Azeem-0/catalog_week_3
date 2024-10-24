@@ -1,7 +1,10 @@
+use core::sync;
+
 use actix_web::web;
 
 use actix_web::{get, web::Data, HttpResponse};
 use chrono::Utc;
+use mongodb::error::Error;
 
 use crate::models::earnings_history_model::{EarningsHistory, EarningsHistoryPool};
 use crate::utils::query_parameters::QueryParameters;
@@ -9,6 +12,104 @@ use crate::{
     models::earnings_history_model::EarningsHistoryResponse,
     repository::mongodb_repository::MongoDB,
 };
+
+pub async fn fetch_and_update_earnigns_history(
+    db: &Data<MongoDB>,
+    from: f64,
+    count: f64,
+    interval: String,
+) -> bool {
+    let mut from = from;
+    let mut earnings_docs_count = 0;
+
+    loop {
+        let current_time = Utc::now().timestamp() as f64;
+
+        if from >= current_time {
+            println!("Start time has reached or exceeded the current time, breaking the loop.");
+            break;
+        }
+
+        let url = format!(
+            "https://midgard.ninerealms.com/v2/history/earnings?interval={}&count={}&from={}",
+            interval, count, from
+        );
+
+        match reqwest::get(&url).await {
+            Ok(response) => match response.json::<EarningsHistoryResponse>().await {
+                Ok(resp) => {
+                    from = resp.meta.end_time.clone();
+
+                    for earnings_history in resp.intervals {
+                        let earnings_history_2 = EarningsHistory {
+                            avg_node_count: earnings_history.avg_node_count,
+                            block_rewards: earnings_history.avg_node_count,
+                            bonding_earnings: earnings_history.bonding_earnings,
+                            earnings: earnings_history.earnings,
+                            end_time: earnings_history.end_time,
+                            liquidity_earnings: earnings_history.liquidity_earnings,
+                            liquidity_fees: earnings_history.liquidity_fees,
+                            rune_price_usd: earnings_history.rune_price_usd,
+                            start_time: earnings_history.start_time,
+                            pools: None,
+                        };
+
+                        let earnings_history_id = match db
+                            .earnings_history_repo
+                            .insert_earnings_history(&earnings_history_2)
+                            .await
+                        {
+                            Ok(result) => result.inserted_id.as_object_id().unwrap(),
+                            Err(_) => {
+                                eprintln!("Failed to insert earnings data into database");
+                                return false;
+                            }
+                        };
+
+                        for pool in earnings_history.pools.unwrap() {
+                            let pool_with_reference = EarningsHistoryPool {
+                                start_time: Some(earnings_history_2.start_time),
+                                end_time: Some(earnings_history_2.end_time),
+                                asset_liquidity_fees: pool.asset_liquidity_fees,
+                                earnings: pool.earnings,
+                                rewards: pool.rewards,
+                                rune_liquidity_fees: pool.rune_liquidity_fees,
+                                saver_earning: pool.saver_earning,
+                                total_liquidity_fees_rune: pool.total_liquidity_fees_rune,
+                                earnings_history: Some(earnings_history_id),
+                                pool: pool.pool,
+                            };
+
+                            match db
+                                .earnings_history_repo
+                                .insert_earnings_history_pool(&pool_with_reference)
+                                .await
+                            {
+                                Ok(_) => (),
+                                Err(_) => {
+                                    eprintln!("Failed to insert pool data into database");
+                                    return false;
+                                }
+                            }
+                        }
+
+                        earnings_docs_count += 1;
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Failed to deserialize response: {:?}", e);
+                    return false;
+                }
+            },
+            Err(e) => {
+                eprintln!("Failed to fetch data: {:?}", e);
+                return false;
+            }
+        }
+    }
+
+    true
+}
 
 #[get("/fetch-and-insert-earnings")]
 pub async fn fetch_and_insert_earnings_history(
@@ -143,7 +244,7 @@ pub async fn earnings_history_api(
         .earnings_history_repo
         .fetch_earnings_history_data(from, to, count, interval, page, sort_by, pool)
         .await
-        .unwrap_or_else(|e| vec![]);
+        .unwrap_or_else(|_| vec![]);
 
     HttpResponse::Ok().json(result)
 }
