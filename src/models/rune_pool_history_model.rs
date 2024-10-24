@@ -2,8 +2,9 @@ use std::collections::HashSet;
 
 use crate::utils::deserialize_util::deserialize_string_to_number;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RunePoolHistory {
     #[serde(deserialize_with = "deserialize_string_to_number")]
@@ -26,7 +27,7 @@ impl RunePoolHistory {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct RunePoolHistoryMeta {
     #[serde(deserialize_with = "deserialize_string_to_number")]
@@ -43,7 +44,7 @@ pub struct RunePoolHistoryMeta {
     pub end_count: f64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct RunePoolHistoryResponse {
     pub meta: RunePoolHistoryMeta,

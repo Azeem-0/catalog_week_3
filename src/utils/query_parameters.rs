@@ -1,4 +1,3 @@
-use actix_web::cookie::time::Time;
 use serde::Deserialize;
 
 use super::time_interval::TimeInterval;

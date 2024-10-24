@@ -3,8 +3,9 @@ use std::collections::HashSet;
 use crate::utils::deserialize_util::deserialize_string_to_number;
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
+use utoipa::{openapi::schema, ToSchema};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct EarningsHistoryPool {
     pub pool: String,
@@ -22,10 +23,11 @@ pub struct EarningsHistoryPool {
     pub rewards: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
     pub earnings: f64,
+    #[schema(value_type = String, example = "60d5ec49a1c4b5048c0e5c70")]
     pub earnings_history: Option<ObjectId>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct EarningsHistory {
     #[serde(deserialize_with = "deserialize_string_to_number")]
@@ -70,7 +72,7 @@ impl EarningsHistory {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct EarningsHistoryMeta {
     #[serde(deserialize_with = "deserialize_string_to_number")]
@@ -93,15 +95,14 @@ pub struct EarningsHistoryMeta {
     #[serde(rename = "runePriceUSD")]
     pub rune_price_usd: f64,
 }
-
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct EarningsHistoryResponse {
     pub meta: EarningsHistoryMeta,
     pub intervals: Vec<EarningsHistory>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct EarningsHistoryFlattenResponse {
     pub pool: String,

@@ -8,9 +8,9 @@ pub mod repository;
 pub mod services;
 pub mod utils;
 
-use std::time::Duration;
+use utoipa::OpenApi;
 
-use tokio_cron_scheduler::{Job, JobScheduler, JobSchedulerError};
+use utoipa_swagger_ui::SwaggerUi;
 
 use actix_web::{
     get,
@@ -22,7 +22,7 @@ use services::{
     depth_history_service, earnings_history_service, rune_pool_history_service,
     swaps_history_service,
 };
-use utils::scheduler::run_cron_job;
+use utils::{api_doc::ApiDoc, scheduler::run_cron_job};
 
 #[get("/")]
 pub async fn hello_world() -> impl Responder {
@@ -37,9 +37,14 @@ pub async fn init_db() -> Result<Data<MongoDB>, Error> {
 pub async fn init_server(db_data: Data<MongoDB>) -> std::io::Result<()> {
     actix_web::rt::spawn(run_cron_job(db_data.clone()));
 
+    let openapi = ApiDoc::openapi();
+
     HttpServer::new(move || {
         App::new()
             .app_data(db_data.clone())
+            .service(
+                SwaggerUi::new("/swagger-ui/{_:.*}").url("/api-docs/openapi.json", openapi.clone()),
+            )
             .service(hello_world)
             .service(web::scope("/depth-history").configure(depth_history_service::init))
             .service(web::scope("/earnings-history").configure(earnings_history_service::init))

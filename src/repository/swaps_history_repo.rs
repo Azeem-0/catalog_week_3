@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use futures::{StreamExt, TryStreamExt};
+use futures::TryStreamExt;
 use mongodb::{
     bson::{doc, Document},
     results::InsertOneResult,

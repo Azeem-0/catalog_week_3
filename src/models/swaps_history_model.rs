@@ -1,8 +1,9 @@
 use crate::utils::deserialize_util::deserialize_string_to_number;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
+use utoipa::ToSchema;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct SwapsHistory {
     #[serde(deserialize_with = "deserialize_string_to_number")]
@@ -140,7 +141,7 @@ impl SwapsHistory {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SwapsHistoryMeta {
     #[serde(deserialize_with = "deserialize_string_to_number")]
@@ -229,7 +230,7 @@ pub struct SwapsHistoryMeta {
     pub rune_price_usd: f64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SwapsHistoryResponse {
     pub meta: SwapsHistoryMeta,

@@ -6,9 +6,8 @@ use actix_web::{
 use chrono::Utc;
 
 use crate::{
-    models::swaps_history_model::SwapsHistoryResponse,
-    repository::mongodb_repository::MongoDB,
-    utils::{query_parameters::QueryParameters, time_interval::TimeInterval},
+    models::swaps_history_model::SwapsHistoryResponse, repository::mongodb_repository::MongoDB,
+    utils::query_parameters::QueryParameters,
 };
 
 pub async fn fetch_and_update_swaps_history(
@@ -18,50 +17,36 @@ pub async fn fetch_and_update_swaps_history(
     interval: String,
     pool: String,
 ) -> bool {
-    let mut swaps_docs_count = 0;
-    let mut from = from;
+    let url = format!(
+        "https://midgard.ninerealms.com/v2/history/swaps?pool={}&interval={}&count={}&from={}",
+        pool, interval, count, from
+    );
 
-    loop {
-        let current_time = Utc::now().timestamp() as f64;
-
-        if from >= current_time {
-            println!("Start time has reached or exceeded the current time, breaking the loop.");
-            break;
-        }
-
-        let url = format!(
-            "https://midgard.ninerealms.com/v2/history/swaps?pool={}&interval={}&count={}&from={}",
-            pool, interval, count, from
-        );
-
-        match reqwest::get(&url).await {
-            Ok(response) => match response.json::<SwapsHistoryResponse>().await {
-                Ok(resp) => {
-                    from = resp.meta.end_time.clone();
-                    for swaps_history in resp.intervals {
-                        match db
-                            .swaps_history_repo
-                            .insert_swaps_history(&swaps_history)
-                            .await
-                        {
-                            Ok(_) => (),
-                            Err(_) => {
-                                eprintln!("Failed to insert data into database");
-                                return false;
-                            }
+    match reqwest::get(&url).await {
+        Ok(response) => match response.json::<SwapsHistoryResponse>().await {
+            Ok(resp) => {
+                for swaps_history in resp.intervals {
+                    match db
+                        .swaps_history_repo
+                        .insert_swaps_history(&swaps_history)
+                        .await
+                    {
+                        Ok(_) => (),
+                        Err(_) => {
+                            eprintln!("Failed to insert data into database");
+                            return false;
                         }
-                        swaps_docs_count += 1;
                     }
                 }
-                Err(e) => {
-                    eprintln!("Failed to deserialize response: {:?}", e);
-                    return false;
-                }
-            },
+            }
             Err(e) => {
-                eprintln!("Failed to fetch data: {:?}", e);
+                eprintln!("Failed to deserialize response: {:?}", e);
                 return false;
             }
+        },
+        Err(e) => {
+            eprintln!("Failed to fetch data: {:?}", e);
+            return false;
         }
     }
 
@@ -132,6 +117,26 @@ pub async fn fetch_and_insert_swaps_history(
     HttpResponse::Ok().body("Successfully fetched and inserted swaps history data into database.")
 }
 
+#[utoipa::path(
+    get,
+    path = "/swaps-history/BTC.BTC",
+    params(
+        ("from" = Option<f64>, Query, description = "Start time for fetching data in Unix timestamp format. Default is 1648771200.0 if not provided.",),
+        ("count" = Option<i64>, Query, description = "Number of records to fetch. Must be greater than 0 and less than or equal to 400. Default is 400 if not provided.",),
+        ("interval" = Option<String>, Query, description = "Time interval for the data (e.g., day, week, month). Default is 'year' if not provided.",),
+        ("to" = Option<f64>, Query, description = "End time for fetching data in Unix timestamp format. Default is 1729666800.0 if not provided.",),
+        ("page" = Option<i64>, Query, description = "Page number for pagination. Default is 1 if not provided.",),
+        ("sort_by" = Option<String>, Query, description = "Field by which to sort the results (e.g., timestamp, price). Default is 'startTime' if not provided.",),
+        ("pool" = Option<String>, Query, description = "Asset pool to fetch data from (e.g., BTC.BTC). Default is 'BTC.BTC'.",)
+    ),
+    responses(
+        (status = 200, description = "Successfully fetched swaps history data.", body = Vec<SwapsHistory>),
+        (status = 404, description = "No swaps history found for the provided parameters."),
+        (status = 500, description = "Internal server error.")
+    ),
+    tag = "Swaps History", 
+    operation_id = "fetchSwapsHistoryData" 
+)]
 #[get("/BTC.BTC")]
 pub async fn swaps_history_api(
     db: Data<MongoDB>,
@@ -145,7 +150,7 @@ pub async fn swaps_history_api(
         .swaps_history_repo
         .fetch_swaps_history_data(from, to, count, interval, page, sort_by)
         .await
-        .unwrap_or_else(|e| vec![]);
+        .unwrap_or_else(|_| vec![]);
 
     HttpResponse::Ok().json(result)
 }

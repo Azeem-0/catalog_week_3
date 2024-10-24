@@ -61,7 +61,7 @@ impl EarningsHistoryRepository {
         sort_by: String,
         pool: String,
     ) -> Result<Vec<EarningsHistoryFlattenResponse>, mongodb::error::Error> {
-        let mut filter = doc! {
+        let filter = doc! {
             "startTime": { "$gte": from },
             "endTime":{"$lte":to},
             "pool" : pool

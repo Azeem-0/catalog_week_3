@@ -1,6 +1,7 @@
 use actix_web::web::Data;
 use chrono::Utc;
-use dotenv::dotenv;
+use futures::{StreamExt, TryStreamExt};
+use mongodb::{bson::doc, options::FindOptions};
 use tokio::time::{interval, Duration};
 
 use crate::{
@@ -11,14 +12,29 @@ use crate::{
     },
 };
 
+pub async fn get_last_end_time(db: &Data<MongoDB>) -> f64 {
+    let options = FindOptions::builder()
+        .sort(doc! { "endTime": -1 })
+        .limit(1)
+        .build();
+
+    let mut result = db.depth_history_repo.col.find(None, options).await.unwrap();
+
+    if let Some(doc) = result.try_next().await.unwrap() {
+        return doc.end_time;
+    }
+
+    0.0
+}
+
 pub async fn run_cron_job(db: Data<MongoDB>) {
     let mut interval = interval(Duration::from_secs(3600));
 
     loop {
         interval.tick().await; // Waiting for the next tick.
 
-        let curr_time = Utc::now().timestamp() as f64;
-        let from = curr_time - 3600.0;
+        let from = get_last_end_time(&db).await;
+
         let interval = String::from("hour");
 
         println!("Running scheduled data fetch at {:?}", from);
@@ -26,7 +42,7 @@ pub async fn run_cron_job(db: Data<MongoDB>) {
         let depth_history_result = depth_history_service::fetch_and_update_depth_history(
             db.clone(),
             from,
-            1.0,
+            400.0,
             interval.to_string(),
             String::from("BTC.BTC"),
         )
@@ -35,7 +51,7 @@ pub async fn run_cron_job(db: Data<MongoDB>) {
         let swap_history_result = swaps_history_service::fetch_and_update_swaps_history(
             &db,
             from,
-            1.0,
+            400.0,
             interval.to_string(),
             String::from("BTC.BTC"),
         )
@@ -45,7 +61,7 @@ pub async fn run_cron_job(db: Data<MongoDB>) {
             rune_pool_history_service::fetch_and_update_rune_pool_history(
                 &db,
                 from,
-                1.0,
+                400.0,
                 interval.to_string(),
             )
             .await;
@@ -53,7 +69,7 @@ pub async fn run_cron_job(db: Data<MongoDB>) {
         let earnings_history_result = earnings_history_service::fetch_and_update_earnigns_history(
             &db,
             from,
-            1.0,
+            400.0,
             interval.to_string(),
         )
         .await;

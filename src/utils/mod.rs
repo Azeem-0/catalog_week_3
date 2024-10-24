@@ -1,3 +1,4 @@
+pub mod api_doc;
 pub mod deserialize_util;
 pub mod query_parameters;
 pub mod scheduler;
