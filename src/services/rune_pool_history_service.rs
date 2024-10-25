@@ -6,8 +6,9 @@ use actix_web::{
 use chrono::Utc;
 
 use crate::{
-    models::rune_pool_history_model::RunePoolHistoryResponse,
-    repository::mongodb_repository::MongoDB, utils::query_parameters::QueryParameters,
+    models::rune_pool_history_model::{RunePoolHistoryMeta, RunePoolHistoryResponse},
+    repository::mongodb_repository::MongoDB,
+    utils::query_parameters::QueryParameters,
 };
 
 pub async fn fetch_and_update_rune_pool_history(
@@ -105,16 +106,15 @@ pub async fn fetch_and_insert_rune_pool_history(
     get,
     path = "/rune-pool-history",
     params(
-        ("from" = Option<f64>, Query, description = "Start time for fetching data in Unix timestamp format. Default is 1648771200.0 if not provided.",),
-        ("count" = Option<i64>, Query, description = "Number of records to fetch. Must be greater than 0 and less than or equal to 400. Default is 400 if not provided.",),
-        ("interval" = Option<String>, Query, description = "Time interval for the data (e.g., day, week, month). Default is 'year' if not provided.",),
-        ("to" = Option<f64>, Query, description = "End time for fetching data in Unix timestamp format. Default is 1729666800.0 if not provided.",),
-        ("page" = Option<i64>, Query, description = "Page number for pagination. Default is 1 if not provided.",),
-        ("sort_by" = Option<String>, Query, description = "Field by which to sort the results (e.g., timestamp, price). Default is 'startTime' if not provided.",),
-        ("pool" = Option<String>, Query, description = "Asset pool to fetch data from (e.g., BTC.BTC). Default is 'BTC.BTC' if not provided.",)
+        ("from" = Option<f64>, Query, description = "Start time for fetching data in Unix timestamp format. Defaults to `1648771200.0` if not provided."),
+        ("count" = Option<i64>, Query, description = "Number of records to fetch. Defaults to `400.0` if not provided or if the provided value is out of range (must be > 0.0 and <= 400.0)."),
+        ("interval" = Option<String>, Query, description = "Time interval for the data (e.g., day, week, month,quarter,year). Defaults to `year` if not provided."),
+        ("to" = Option<f64>, Query, description = "End time for fetching data in Unix timestamp format. Defaults to current time if not provided."),
+        ("page" = Option<i64>, Query, description = "Page number for pagination. Defaults to `1` if not provided."),
+        ("sort_by" = Option<String>, Query, description = "Field by which to sort the results (e.g., timestamp, price). Defaults to `startTime` if not provided or if the field is not present in the model."),
     ),
     responses(
-        (status = 200, description = "Successfully fetched rune pool history data.", body = Vec<RunePoolHistory>),
+        (status = 200, description = "Successfully fetched rune pool history data.", body = Vec<RunePoolHistoryResponse>),
         (status = 404, description = "No rune pool history found for the provided parameters."),
         (status = 500, description = "Internal server error.")
     ),
@@ -130,13 +130,26 @@ pub async fn rune_pool_history_api(
 
     println!("{} {} {} {} {} {}", from, count, to, pool, sort_by, page);
 
-    let result = db
+    let intervals = db
         .rune_pool_history_repo
         .fetch_rune_pool_history_data(from, to, count, interval, page, sort_by)
         .await
-        .unwrap_or_else(|e| vec![]);
+        .unwrap_or_else(|_| vec![]);
 
-    HttpResponse::Ok().json(result)
+    let start_record = intervals.first().unwrap();
+    let end_record = intervals.last().unwrap();
+
+    let meta = RunePoolHistoryMeta {
+        start_time: start_record.start_time,
+        end_time: end_record.end_time,
+        start_units: start_record.units,
+        start_count: start_record.count,
+        end_units: end_record.units,
+        end_count: end_record.count,
+    };
+    let response = RunePoolHistoryResponse { meta, intervals };
+
+    HttpResponse::Ok().json(response)
 }
 
 pub fn init(config: &mut web::ServiceConfig) -> () {

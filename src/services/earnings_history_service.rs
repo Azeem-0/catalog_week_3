@@ -1,17 +1,15 @@
-use core::sync;
-
 use actix_web::web;
 
-use actix_web::{get, web::Data, HttpResponse};
-use chrono::Utc;
-use mongodb::error::Error;
-
-use crate::models::earnings_history_model::{EarningsHistory, EarningsHistoryPool};
+use crate::models::earnings_history_model::{
+    EarningsHistory, EarningsHistoryMeta, EarningsHistoryPool,
+};
 use crate::utils::query_parameters::QueryParameters;
 use crate::{
     models::earnings_history_model::EarningsHistoryResponse,
     repository::mongodb_repository::MongoDB,
 };
+use actix_web::{get, web::Data, HttpResponse};
+use chrono::Utc;
 
 pub async fn fetch_and_update_earnigns_history(
     db: &Data<MongoDB>,
@@ -206,13 +204,13 @@ pub async fn fetch_and_insert_earnings_history(
     get,
     path = "/earnings-history",
     params(
-        ("from" = Option<f64>, Query, description = "Start time for fetching earnings data in Unix timestamp format. Default: 1648771200.0"),
-        ("count" = Option<i64>, Query, description = "Number of records to fetch. Default: 400"),
-        ("interval" = Option<String>, Query, description = "Time interval for the data (e.g., day, week, month, year). Default: 'year'"),
-        ("to" = Option<f64>, Query, description = "End time for fetching earnings data in Unix timestamp format. Default: 1729666800.0"),
-        ("page" = Option<i64>, Query, description = "Page number for pagination. Default: 1"),
-        ("sort_by" = Option<String>, Query, description = "Field by which to sort the results (e.g., start_time, earnings). Default: 'start_time'"),
-        ("pool" = Option<String>, Query, description = "Asset pool to fetch data from (e.g., BTC.BTC). Default: 'BTC.BTC'")
+        ("from" = Option<f64>, Query, description = "Start time for fetching data in Unix timestamp format. Defaults to `1648771200.0` if not provided."),
+        ("count" = Option<i64>, Query, description = "Number of records to fetch. Defaults to `400.0` if not provided or if the provided value is out of range (must be > 0.0 and <= 400.0)."),
+        ("interval" = Option<String>, Query, description = "Time interval for the data (e.g., day, week, month,quarter,year). Defaults to `year` if not provided."),
+        ("to" = Option<f64>, Query, description = "End time for fetching data in Unix timestamp format. Defaults to current time if not provided."),
+        ("page" = Option<i64>, Query, description = "Page number for pagination. Defaults to `1` if not provided."),
+        ("sort_by" = Option<String>, Query, description = "Field by which to sort the results (e.g., timestamp, price). Defaults to `startTime` if not provided or if the field is not present in the model."),
+        ("pool" = Option<String>, Query, description = "Asset pool to fetch data from (e.g., BTC.BTC). Currently working only with BTC.BTC.")
     ),
     responses(
         (status = 200, description = "Successfully fetched earnings history data", body = Vec<EarningsHistory>),

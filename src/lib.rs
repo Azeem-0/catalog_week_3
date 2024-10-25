@@ -1,8 +1,5 @@
 #![recursion_limit = "256"]
-#[allow(dead_code)]
-#[allow(unused_imports)]
-#[allow(unused_variables)]
-#[allow(unused_must_use)]
+
 pub mod models;
 pub mod repository;
 pub mod services;
@@ -13,9 +10,8 @@ use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
 use actix_web::{
-    get,
     web::{self, Data},
-    App, Error, HttpResponse, HttpServer, Responder,
+    App, Error, HttpServer,
 };
 use repository::mongodb_repository::MongoDB;
 use services::{
@@ -23,11 +19,6 @@ use services::{
     swaps_history_service,
 };
 use utils::{api_doc::ApiDoc, scheduler::run_cron_job};
-
-#[get("/")]
-pub async fn hello_world() -> impl Responder {
-    HttpResponse::Ok().body("Namasteee bosssss....")
-}
 
 pub async fn init_db() -> Result<Data<MongoDB>, Error> {
     let db = MongoDB::init().await.unwrap();
@@ -45,7 +36,6 @@ pub async fn init_server(db_data: Data<MongoDB>) -> std::io::Result<()> {
             .service(
                 SwaggerUi::new("/swagger-ui/{_:.*}").url("/api-docs/openapi.json", openapi.clone()),
             )
-            .service(hello_world)
             .service(web::scope("/depth-history").configure(depth_history_service::init))
             .service(web::scope("/earnings-history").configure(earnings_history_service::init))
             .service(web::scope("/swaps-history").configure(swaps_history_service::init))

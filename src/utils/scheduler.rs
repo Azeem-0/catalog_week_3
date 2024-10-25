@@ -1,6 +1,5 @@
 use actix_web::web::Data;
-use chrono::Utc;
-use futures::{StreamExt, TryStreamExt};
+use futures::TryStreamExt;
 use mongodb::{bson::doc, options::FindOptions};
 use tokio::time::{interval, Duration};
 

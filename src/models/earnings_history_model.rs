@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use crate::utils::deserialize_util::deserialize_string_to_number;
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
-use utoipa::{openapi::schema, ToSchema};
+use utoipa::ToSchema;
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -98,6 +98,7 @@ pub struct EarningsHistoryMeta {
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct EarningsHistoryResponse {
+    #[schema(inline)]
     pub meta: EarningsHistoryMeta,
     pub intervals: Vec<EarningsHistory>,
 }

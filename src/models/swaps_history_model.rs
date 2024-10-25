@@ -233,6 +233,7 @@ pub struct SwapsHistoryMeta {
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SwapsHistoryResponse {
+    #[schema(inline)]
     pub meta: SwapsHistoryMeta,
     pub intervals: Vec<SwapsHistory>,
 }

@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 use crate::utils::deserialize_util::deserialize_string_to_number;
@@ -95,6 +95,7 @@ pub struct DepthHistoryMeta {
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct DepthHistoryResponse {
+    #[schema(inline)]
     pub meta: DepthHistoryMeta,
     pub intervals: Vec<DepthHistory>,
 }

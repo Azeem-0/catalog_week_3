@@ -47,6 +47,7 @@ pub struct RunePoolHistoryMeta {
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct RunePoolHistoryResponse {
+    #[schema(inline)]
     pub meta: RunePoolHistoryMeta,
     pub intervals: Vec<RunePoolHistory>,
 }

@@ -8,9 +8,9 @@ use actix_web::{
 use chrono::Utc;
 
 use crate::{
-    models::depth_history_model::DepthHistoryResponse,
+    models::depth_history_model::{DepthHistoryMeta, DepthHistoryResponse},
     repository::mongodb_repository::MongoDB,
-    utils::{query_parameters::QueryParameters, time_interval::TimeInterval},
+    utils::query_parameters::QueryParameters,
 };
 
 pub async fn fetch_and_update_depth_history(
@@ -127,14 +127,14 @@ pub async fn fetch_and_insert_depth_history(
     params(
         ("from" = Option<f64>, Query, description = "Start time for fetching data in Unix timestamp format. Defaults to `1648771200.0` if not provided."),
         ("count" = Option<i64>, Query, description = "Number of records to fetch. Defaults to `400.0` if not provided or if the provided value is out of range (must be > 0.0 and <= 400.0)."),
-        ("interval" = Option<String>, Query, description = "Time interval for the data (e.g., day, week, month). Defaults to `year` if not provided."),
-        ("to" = Option<f64>, Query, description = "End time for fetching data in Unix timestamp format. Defaults to `1729666800.0` if not provided."),
+        ("interval" = Option<String>, Query, description = "Time interval for the data (e.g., day, week, month,quarter,year). Defaults to `year` if not provided."),
+        ("to" = Option<f64>, Query, description = "End time for fetching data in Unix timestamp format. Defaults to current time if not provided."),
         ("page" = Option<i64>, Query, description = "Page number for pagination. Defaults to `1` if not provided."),
-        ("sort_by" = Option<String>, Query, description = "Field by which to sort the results (e.g., timestamp, price). Defaults to `startTime` if not provided."),
-        ("pool" = Option<String>, Query, description = "Asset pool to fetch data from (e.g., BTC.BTC). Defaults to `BTC.BTC` if not provided.")
+        ("sort_by" = Option<String>, Query, description = "Field by which to sort the results (e.g., timestamp, price). Defaults to `startTime` if not provided or if the field is not present in the model."),
+        ("pool" = Option<String>, Query, description = "Asset pool to fetch data from (e.g., BTC.BTC). Currently working only with BTC.BTC.")
     ),
     responses(
-        (status = 200, description = "Successfully fetched depth history data", body = Vec<DepthHistory>),
+        (status = 200, description = "Successfully fetched depth history data", body = Vec<DepthHistoryResponse>),
         (status = 404, description = "No depth history found for the provided parameters"),
         (status = 500, description = "Internal server error")
     ),
@@ -150,13 +150,38 @@ pub async fn depth_history_api(
 
     println!("{} {} {} {} {} {}", from, count, to, pool, sort_by, page);
 
-    let result = db
+    let intervals = db
         .depth_history_repo
         .fetch_depth_history_data(from, to, count, interval, page, sort_by)
         .await
         .unwrap_or_else(|_| vec![]);
 
-    HttpResponse::Ok().json(result)
+    let start_record = intervals.first().unwrap();
+    let end_record = intervals.last().unwrap();
+
+    let meta = DepthHistoryMeta {
+        start_time: start_record.start_time,
+        end_time: end_record.end_time,
+        price_shift_loss: end_record.asset_price - start_record.asset_price,
+        luvi_increase: end_record.luvi - start_record.luvi,
+        start_asset_depth: start_record.asset_depth,
+        start_rune_depth: start_record.rune_depth,
+        start_lp_units: start_record.liquidity_units,
+        start_member_count: start_record.members_count,
+        start_synth_units: start_record.synth_units,
+        end_asset_depth: end_record.asset_depth,
+        end_rune_depth: end_record.rune_depth,
+        end_lp_units: end_record.liquidity_units,
+        end_member_count: end_record.members_count,
+        end_synth_units: end_record.synth_units,
+    };
+
+    let response = DepthHistoryResponse {
+        meta,
+        intervals: intervals,
+    };
+
+    HttpResponse::Ok().json(response)
 }
 
 pub fn init(config: &mut web::ServiceConfig) -> () {
