@@ -132,7 +132,7 @@ pub async fn fetch_and_insert_depth_history(
     path = "/depth-history",
     params(
         ("from" = Option<f64>, Query, description = "Start time for fetching data in Unix timestamp format. Defaults to `1648771200.0` if not provided."),
-        ("count" = Option<i64>, Query, description = "Number of records to fetch. Defaults to `400.0` if not provided or if the provided value is out of range (must be > 0.0 and <= 400.0)."),
+        ("count" = Option<i64>, Query, description = "Number of records to fetch. Defaults to `1.0` if not provided or if the provided value is out of range (must be > 0.0 and <= 400.0)."),
         ("interval" = Option<String>, Query, description = "Time interval for the data (e.g., day, week, month,quarter,year). Defaults to `year` if not provided."),
         ("to" = Option<f64>, Query, description = "End time for fetching data in Unix timestamp format. Defaults to current time if not provided."),
         ("page" = Option<i64>, Query, description = "Page number for pagination. Defaults to `1` if not provided."),
