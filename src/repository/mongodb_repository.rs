@@ -41,7 +41,7 @@ impl MongoDB {
 
         let depth_history_collection: Collection<DepthHistory> = db.collection("depth_history");
         let earnings_history_collection: Collection<EarningsHistory> =
-            db.collection("earnings_history");
+            db.collection("earnings_history_new");
 
         let earnings_history_pool_collection: Collection<EarningsHistoryPool> =
             db.collection("earnings_history_pool");

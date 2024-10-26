@@ -136,20 +136,24 @@ pub async fn rune_pool_history_api(
         .await
         .unwrap_or_else(|_| vec![]);
 
-    let start_record = intervals.first().unwrap();
-    let end_record = intervals.last().unwrap();
+    if intervals.len() == 0 {
+        return HttpResponse::Ok().body("No data available for the specified interval or the query parameters may be incorrectly specified.");
+    } else {
+        let start_record = intervals.first().unwrap();
+        let end_record = intervals.last().unwrap();
 
-    let meta = RunePoolHistoryMeta {
-        start_time: start_record.start_time,
-        end_time: end_record.end_time,
-        start_units: start_record.units,
-        start_count: start_record.count,
-        end_units: end_record.units,
-        end_count: end_record.count,
-    };
-    let response = RunePoolHistoryResponse { meta, intervals };
+        let meta = RunePoolHistoryMeta {
+            start_time: start_record.start_time,
+            end_time: end_record.end_time,
+            start_units: start_record.units,
+            start_count: start_record.count,
+            end_units: end_record.units,
+            end_count: end_record.count,
+        };
+        let response = RunePoolHistoryResponse { meta, intervals };
 
-    HttpResponse::Ok().json(response)
+        HttpResponse::Ok().json(response)
+    }
 }
 
 pub fn init(config: &mut web::ServiceConfig) -> () {

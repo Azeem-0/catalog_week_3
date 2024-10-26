@@ -26,55 +26,15 @@ pub async fn fetch_and_update_earnigns_history(
         Ok(response) => match response.json::<EarningsHistoryResponse>().await {
             Ok(resp) => {
                 for earnings_history in resp.intervals {
-                    let earnings_history_2 = EarningsHistory {
-                        avg_node_count: earnings_history.avg_node_count,
-                        block_rewards: earnings_history.avg_node_count,
-                        bonding_earnings: earnings_history.bonding_earnings,
-                        earnings: earnings_history.earnings,
-                        end_time: earnings_history.end_time,
-                        liquidity_earnings: earnings_history.liquidity_earnings,
-                        liquidity_fees: earnings_history.liquidity_fees,
-                        rune_price_usd: earnings_history.rune_price_usd,
-                        start_time: earnings_history.start_time,
-                        pools: None,
-                    };
-
-                    let earnings_history_id = match db
+                    match db
                         .earnings_history_repo
-                        .insert_earnings_history(&earnings_history_2)
+                        .insert_earnings_history(&earnings_history)
                         .await
                     {
-                        Ok(result) => result.inserted_id.as_object_id().unwrap(),
+                        Ok(_) => (),
                         Err(_) => {
                             eprintln!("Failed to insert earnings data into database");
                             return false;
-                        }
-                    };
-
-                    for pool in earnings_history.pools.unwrap() {
-                        let pool_with_reference = EarningsHistoryPool {
-                            start_time: Some(earnings_history_2.start_time),
-                            end_time: Some(earnings_history_2.end_time),
-                            asset_liquidity_fees: pool.asset_liquidity_fees,
-                            earnings: pool.earnings,
-                            rewards: pool.rewards,
-                            rune_liquidity_fees: pool.rune_liquidity_fees,
-                            saver_earning: pool.saver_earning,
-                            total_liquidity_fees_rune: pool.total_liquidity_fees_rune,
-                            earnings_history: Some(earnings_history_id),
-                            pool: pool.pool,
-                        };
-
-                        match db
-                            .earnings_history_repo
-                            .insert_earnings_history_pool(&pool_with_reference)
-                            .await
-                        {
-                            Ok(_) => (),
-                            Err(_) => {
-                                eprintln!("Failed to insert pool data into database");
-                                return false;
-                            }
                         }
                     }
                 }
@@ -92,7 +52,6 @@ pub async fn fetch_and_update_earnigns_history(
 
     true
 }
-
 #[get("/fetch-and-insert-earnings")]
 pub async fn fetch_and_insert_earnings_history(
     db: Data<MongoDB>,
@@ -102,7 +61,7 @@ pub async fn fetch_and_insert_earnings_history(
 
     let mut from: f64 = params.from.clone().unwrap_or_else(|| 1648771200.0);
     let count = params.count.unwrap_or_else(|| 400.0);
-    let interval = params.interval.unwrap_or_else(|| String::from("year"));
+    let interval = params.interval.unwrap_or_else(|| String::from("hour"));
 
     let mut earnings_docs_count = 0;
 
@@ -125,59 +84,17 @@ pub async fn fetch_and_insert_earnings_history(
             Ok(response) => match response.json::<EarningsHistoryResponse>().await {
                 Ok(resp) => {
                     from = resp.meta.end_time.clone();
-
                     for earnings_history in resp.intervals {
-                        let earnings_history_2 = EarningsHistory {
-                            avg_node_count: earnings_history.avg_node_count,
-                            block_rewards: earnings_history.avg_node_count,
-                            bonding_earnings: earnings_history.bonding_earnings,
-                            earnings: earnings_history.earnings,
-                            end_time: earnings_history.end_time,
-                            liquidity_earnings: earnings_history.liquidity_earnings,
-                            liquidity_fees: earnings_history.liquidity_fees,
-                            rune_price_usd: earnings_history.rune_price_usd,
-                            start_time: earnings_history.start_time,
-                            pools: None,
-                        };
-
-                        let earnings_history_id = match db
+                        match db
                             .earnings_history_repo
-                            .insert_earnings_history(&earnings_history_2)
+                            .insert_earnings_history(&earnings_history)
                             .await
                         {
-                            Ok(result) => result.inserted_id.as_object_id().unwrap(),
+                            Ok(_) => (),
                             Err(_) => {
                                 eprintln!("Failed to insert earnings data into database");
                                 return HttpResponse::InternalServerError()
                                     .body("Failed to insert earnings data into database");
-                            }
-                        };
-
-                        for pool in earnings_history.pools.unwrap() {
-                            let pool_with_reference = EarningsHistoryPool {
-                                start_time: Some(earnings_history_2.start_time),
-                                end_time: Some(earnings_history_2.end_time),
-                                asset_liquidity_fees: pool.asset_liquidity_fees,
-                                earnings: pool.earnings,
-                                rewards: pool.rewards,
-                                rune_liquidity_fees: pool.rune_liquidity_fees,
-                                saver_earning: pool.saver_earning,
-                                total_liquidity_fees_rune: pool.total_liquidity_fees_rune,
-                                earnings_history: Some(earnings_history_id),
-                                pool: pool.pool,
-                            };
-
-                            match db
-                                .earnings_history_repo
-                                .insert_earnings_history_pool(&pool_with_reference)
-                                .await
-                            {
-                                Ok(_) => (),
-                                Err(_) => {
-                                    eprintln!("Failed to insert pool data into database");
-                                    return HttpResponse::InternalServerError()
-                                        .body("Failed to insert pool data into database");
-                                }
                             }
                         }
                     }
@@ -210,10 +127,9 @@ pub async fn fetch_and_insert_earnings_history(
         ("to" = Option<f64>, Query, description = "End time for fetching data in Unix timestamp format. Defaults to current time if not provided."),
         ("page" = Option<i64>, Query, description = "Page number for pagination. Defaults to `1` if not provided."),
         ("sort_by" = Option<String>, Query, description = "Field by which to sort the results (e.g., timestamp, price). Defaults to `startTime` if not provided or if the field is not present in the model."),
-        ("pool" = Option<String>, Query, description = "Asset pool to fetch data from (e.g., BTC.BTC). Currently working only with BTC.BTC.")
     ),
     responses(
-        (status = 200, description = "Successfully fetched earnings history data", body = Vec<EarningsHistory>),
+        (status = 200, description = "Successfully fetched earnings history data", body = Vec<EarningsHistoryResponse>),
         (status = 404, description = "No earnings history found for the provided parameters"),
         (status = 500, description = "Internal server error")
     ),
@@ -229,13 +145,34 @@ pub async fn earnings_history_api(
 
     println!("{} {} {} {} {} {}", from, count, to, pool, sort_by, page);
 
-    let result = db
+    let intervals = db
         .earnings_history_repo
         .fetch_earnings_history_data(from, to, count, interval, page, sort_by, pool)
         .await
         .unwrap_or_else(|_| vec![]);
 
-    HttpResponse::Ok().json(result)
+    if intervals.len() == 0 {
+        return HttpResponse::Ok().body("No data available for the specified interval or the query parameters may be incorrectly specified.");
+    } else {
+        let start_record = intervals.first().unwrap();
+        let end_record = intervals.last().unwrap();
+
+        let meta = EarningsHistoryMeta {
+            start_time: start_record.start_time,
+            end_time: end_record.end_time,
+            liquidity_fees: end_record.liquidity_fees,
+            block_rewards: end_record.block_rewards,
+            earnings: end_record.earnings,
+            bonding_earnings: end_record.bonding_earnings,
+            liquidity_earnings: end_record.liquidity_earnings,
+            avg_node_count: end_record.avg_node_count,
+            rune_price_usd: end_record.rune_price_usd,
+        };
+
+        let response = EarningsHistoryResponse { intervals, meta };
+
+        HttpResponse::Ok().json(response)
+    }
 }
 
 pub fn init(config: &mut web::ServiceConfig) -> () {

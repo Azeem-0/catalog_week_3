@@ -207,14 +207,18 @@ pub async fn swaps_history_api(
         .await
         .unwrap_or_else(|_| vec![]);
 
-    let start_record = intervals.first().unwrap();
-    let end_record = intervals.last().unwrap();
+    if intervals.len() == 0 {
+        return HttpResponse::Ok().body("No data available for the specified interval or the query parameters may be incorrectly specified.");
+    } else {
+        let start_record = intervals.first().unwrap();
+        let end_record = intervals.last().unwrap();
 
-    let meta = get_meta_information(start_record, end_record).await;
+        let meta = get_meta_information(start_record, end_record).await;
 
-    let response = SwapsHistoryResponse { meta, intervals };
+        let response = SwapsHistoryResponse { meta, intervals };
 
-    HttpResponse::Ok().json(response)
+        HttpResponse::Ok().json(response)
+    }
 }
 
 pub fn init(config: &mut web::ServiceConfig) -> () {

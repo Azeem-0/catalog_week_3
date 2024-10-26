@@ -9,8 +9,6 @@ use utoipa::ToSchema;
 #[serde(rename_all = "camelCase")]
 pub struct EarningsHistoryPool {
     pub pool: String,
-    pub start_time: Option<f64>,
-    pub end_time: Option<f64>,
     #[serde(deserialize_with = "deserialize_string_to_number")]
     pub asset_liquidity_fees: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
@@ -23,8 +21,6 @@ pub struct EarningsHistoryPool {
     pub rewards: f64,
     #[serde(deserialize_with = "deserialize_string_to_number")]
     pub earnings: f64,
-    #[schema(value_type = String, example = "60d5ec49a1c4b5048c0e5c70")]
-    pub earnings_history: Option<ObjectId>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
@@ -49,7 +45,7 @@ pub struct EarningsHistory {
     #[serde(deserialize_with = "deserialize_string_to_number")]
     #[serde(rename = "runePriceUSD")]
     pub rune_price_usd: f64,
-    pub pools: Option<Vec<EarningsHistoryPool>>,
+    pub pools: Vec<EarningsHistoryPool>,
 }
 
 impl EarningsHistory {

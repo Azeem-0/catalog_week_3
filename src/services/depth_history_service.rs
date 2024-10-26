@@ -156,32 +156,33 @@ pub async fn depth_history_api(
         .await
         .unwrap_or_else(|_| vec![]);
 
-    let start_record = intervals.first().unwrap();
-    let end_record = intervals.last().unwrap();
+    if intervals.len() == 0 {
+        return HttpResponse::Ok().body("No data available for the specified interval or the query parameters may be incorrectly specified.");
+    } else {
+        let start_record = intervals.first().unwrap();
+        let end_record = intervals.last().unwrap();
 
-    let meta = DepthHistoryMeta {
-        start_time: start_record.start_time,
-        end_time: end_record.end_time,
-        price_shift_loss: end_record.asset_price - start_record.asset_price,
-        luvi_increase: end_record.luvi - start_record.luvi,
-        start_asset_depth: start_record.asset_depth,
-        start_rune_depth: start_record.rune_depth,
-        start_lp_units: start_record.liquidity_units,
-        start_member_count: start_record.members_count,
-        start_synth_units: start_record.synth_units,
-        end_asset_depth: end_record.asset_depth,
-        end_rune_depth: end_record.rune_depth,
-        end_lp_units: end_record.liquidity_units,
-        end_member_count: end_record.members_count,
-        end_synth_units: end_record.synth_units,
-    };
+        let meta = DepthHistoryMeta {
+            start_time: start_record.start_time,
+            end_time: end_record.end_time,
+            price_shift_loss: end_record.asset_price - start_record.asset_price,
+            luvi_increase: end_record.luvi - start_record.luvi,
+            start_asset_depth: start_record.asset_depth,
+            start_rune_depth: start_record.rune_depth,
+            start_lp_units: start_record.liquidity_units,
+            start_member_count: start_record.members_count,
+            start_synth_units: start_record.synth_units,
+            end_asset_depth: end_record.asset_depth,
+            end_rune_depth: end_record.rune_depth,
+            end_lp_units: end_record.liquidity_units,
+            end_member_count: end_record.members_count,
+            end_synth_units: end_record.synth_units,
+        };
 
-    let response = DepthHistoryResponse {
-        meta,
-        intervals: intervals,
-    };
+        let response = DepthHistoryResponse { meta, intervals };
 
-    HttpResponse::Ok().json(response)
+        HttpResponse::Ok().json(response)
+    }
 }
 
 pub fn init(config: &mut web::ServiceConfig) -> () {
