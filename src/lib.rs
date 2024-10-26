@@ -30,7 +30,7 @@ pub async fn init_db() -> Result<Data<MongoDB>, Error> {
 }
 
 pub async fn init_server(db_data: Data<MongoDB>) -> std::io::Result<()> {
-    actix_web::rt::spawn(run_cron_job(db_data.clone()));
+    // actix_web::rt::spawn(run_cron_job(db_data.clone()));
 
     let openapi = ApiDoc::openapi();
 

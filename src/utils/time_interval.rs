@@ -1,3 +1,5 @@
+use core::fmt;
+
 #[derive(Debug)]
 pub enum TimeInterval {
     Hour,
@@ -30,6 +32,17 @@ impl TimeInterval {
             "quarter" => Some(TimeInterval::Quarter),
             "year" => Some(TimeInterval::Year),
             _ => None, // Return None if the string doesn't match any interval
+        }
+    }
+
+    pub fn to_str(&self) -> &'static str {
+        match self {
+            TimeInterval::Hour => "hour",
+            TimeInterval::Day => "day",
+            TimeInterval::Week => "week",
+            TimeInterval::Month => "month",
+            TimeInterval::Quarter => "quarter",
+            TimeInterval::Year => "year",
         }
     }
 }

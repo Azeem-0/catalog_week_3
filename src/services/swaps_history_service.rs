@@ -59,15 +59,17 @@ pub async fn fetch_and_insert_swaps_history(
     db: Data<MongoDB>,
     query: web::Query<QueryParameters>,
 ) -> HttpResponse {
-    let params = query.into_inner();
+    // let params = query.into_inner();
 
-    let mut from: f64 = params.from.clone().unwrap_or_else(|| 1648771200.0);
-    let count = params.count.unwrap_or_else(|| 400.0);
-    let interval = params.interval.unwrap_or_else(|| String::from("year"));
-    let pool = params.pool.unwrap_or_else(|| String::from("BTC.BTC"));
+    // let mut from: f64 = params.from.clone().unwrap_or_else(|| 1648771200.0);
+    // let count = params.count.unwrap_or_else(|| 400.0);
+    // let interval = params.interval.unwrap_or_else(|| String::from("year"));
+    // let pool = params.pool.unwrap_or_else(|| String::from("BTC.BTC"));
+
+    let (from, count, interval, to, page, sort_by, pool) = query.process_query_parameters();
 
     let mut swaps_docs_count = 0;
-
+    let mut from = from;
     loop {
         let current_time = Utc::now().timestamp() as f64;
 
@@ -76,9 +78,10 @@ pub async fn fetch_and_insert_swaps_history(
             break;
         }
 
-        let url = format!(
+        let url =
+            format!(
             "https://midgard.ninerealms.com/v2/history/swaps?pool={}&interval={}&count={}&from={}",
-            pool, interval, count, from
+            pool, interval.to_str(), count, from
         );
 
         match reqwest::get(&url).await {

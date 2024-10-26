@@ -57,13 +57,10 @@ pub async fn fetch_and_insert_earnings_history(
     db: Data<MongoDB>,
     query: web::Query<QueryParameters>,
 ) -> HttpResponse {
-    let params = query.into_inner();
-
-    let mut from: f64 = params.from.clone().unwrap_or_else(|| 1648771200.0);
-    let count = params.count.unwrap_or_else(|| 400.0);
-    let interval = params.interval.unwrap_or_else(|| String::from("hour"));
+    let (from, count, interval, to, page, sort_by, pool) = query.process_query_parameters();
 
     let mut earnings_docs_count = 0;
+    let mut from = from;
 
     loop {
         let current_time = Utc::now().timestamp() as f64;
@@ -75,7 +72,9 @@ pub async fn fetch_and_insert_earnings_history(
 
         let url = format!(
             "https://midgard.ninerealms.com/v2/history/earnings?interval={}&count={}&from={}",
-            interval, count, from
+            interval.to_str(),
+            count,
+            from
         );
 
         println!("{}", url);
@@ -152,10 +151,13 @@ pub async fn earnings_history_api(
         .earnings_history_repo
         .fetch_earnings_history_data(from, to, count, interval, page, sort_by, pool)
         .await
-        .unwrap_or_else(|_| vec![]);
+        .unwrap_or_else(|err| {
+            eprintln!("Error occured {}", err);
+            vec![]
+        });
 
     if intervals.len() == 0 {
-        return HttpResponse::Ok().body("No data available for the specified interval or the query parameters may be incorrectly specified.");
+        return HttpResponse::Ok().body("No data available for the specified interval or query parameters may be incorrectly specified.");
     } else {
         let start_record = intervals.first().unwrap();
         let end_record = intervals.last().unwrap();
