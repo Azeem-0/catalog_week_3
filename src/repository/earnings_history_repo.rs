@@ -50,6 +50,7 @@ impl EarningsHistoryRepository {
             .map_err(|e| e)?;
         Ok(insert_details)
     }
+
     pub async fn fetch_earnings_history_data(
         &self,
         from: f64,
@@ -100,32 +101,6 @@ impl EarningsHistoryRepository {
                     "avgNodeCount": { "$last": "$avgNodeCount" },
                     "runePriceUSD": { "$last": "$runePriceUSD" },
                     "pools": { "$last": "$pools" }
-                }
-            },
-            doc! {
-                "$project": {
-                    "_id": 0,
-                    "startTime": 1,
-                    "endTime": 1,
-                    "liquidityFees": 1,
-                    "blockRewards": 1,
-                    "earnings": 1,
-                    "bondingEarnings": 1,
-                    "liquidityEarnings": 1,
-                    "avgNodeCount": 1,
-                    "runePriceUSD": 1,
-                    "pools": {
-                        "$slice": [
-                            {
-                                "$filter": {
-                                    "input": "$pools",
-                                    "as": "pool",
-                                    "cond": { "$eq": ["$$pool.pool", "BTC.BTC"] }  // Filter for pool: BTC.BTC
-                                }
-                            },
-                            1  // Limit to 1 result from the filtered pools
-                        ]
-                    }
                 }
             },
             doc! {"$sort": { "startTime": 1 }},

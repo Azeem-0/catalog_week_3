@@ -11,7 +11,7 @@ use utoipa_swagger_ui::SwaggerUi;
 
 use actix_web::{
     web::{self, Data},
-    App, Error, HttpServer,
+    App, Error, HttpResponse, HttpServer,
 };
 use repository::mongodb_repository::MongoDB;
 use services::{
@@ -19,6 +19,10 @@ use services::{
     swaps_history_service,
 };
 use utils::{api_doc::ApiDoc, scheduler::run_cron_job};
+
+pub async fn home_route() -> HttpResponse {
+    HttpResponse::Ok().body("Hello! Welcome to our API")
+}
 
 pub async fn init_db() -> Result<Data<MongoDB>, Error> {
     let db = MongoDB::init().await.unwrap();
@@ -33,6 +37,7 @@ pub async fn init_server(db_data: Data<MongoDB>) -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(db_data.clone())
+            .route("/", web::get().to(home_route))
             .service(
                 SwaggerUi::new("/swagger-ui/{_:.*}").url("/api-docs/openapi.json", openapi.clone()),
             )

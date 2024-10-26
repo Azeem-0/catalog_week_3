@@ -143,7 +143,10 @@ pub async fn earnings_history_api(
 ) -> HttpResponse {
     let (from, count, interval, to, page, sort_by, pool) = query.process_query_parameters();
 
-    println!("{} {} {} {} {} {}", from, count, to, pool, sort_by, page);
+    println!(
+        "{} {} {} {} {} {} {:?}",
+        from, count, to, pool, sort_by, page, interval
+    );
 
     let intervals = db
         .earnings_history_repo

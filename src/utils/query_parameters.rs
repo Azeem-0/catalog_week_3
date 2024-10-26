@@ -37,7 +37,7 @@ impl QueryParameters {
                 let effective_interval = interval.as_seconds() as f64;
                 let duration_seconds = effective_interval * effective_count;
                 let current_time = Utc::now().timestamp() as f64;
-                current_time - duration_seconds
+                (current_time - duration_seconds).min(1648771200.0)
             }
         });
 
