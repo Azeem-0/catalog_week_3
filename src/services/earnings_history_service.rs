@@ -83,19 +83,40 @@ pub async fn fetch_and_insert_earnings_history(
             Ok(response) => match response.json::<EarningsHistoryResponse>().await {
                 Ok(resp) => {
                     from = resp.meta.end_time.clone();
-                    for earnings_history in resp.intervals {
-                        match db
-                            .earnings_history_repo
-                            .insert_earnings_history(&earnings_history)
-                            .await
-                        {
-                            Ok(_) => (),
-                            Err(_) => {
-                                eprintln!("Failed to insert earnings data into database");
-                                return HttpResponse::InternalServerError()
-                                    .body("Failed to insert earnings data into database");
+                    for mut earnings_history in resp.intervals {
+                        earnings_history.pools = earnings_history
+                            .pools
+                            .into_iter()
+                            .filter(|pool| pool.pool == "BTC.BTC")
+                            .collect();
+
+                        if !earnings_history.pools.is_empty() {
+                            match db
+                                .earnings_history_repo
+                                .insert_earnings_history(&earnings_history)
+                                .await
+                            {
+                                Ok(_) => (),
+                                Err(_) => {
+                                    eprintln!("Failed to insert earnings data into database");
+                                    return HttpResponse::InternalServerError()
+                                        .body("Failed to insert earnings data into database");
+                                }
                             }
                         }
+
+                        // match db
+                        //     .earnings_history_repo
+                        //     .insert_earnings_history(&earnings_history)
+                        //     .await
+                        // {
+                        //     Ok(_) => (),
+                        //     Err(_) => {
+                        //         eprintln!("Failed to insert earnings data into database");
+                        //         return HttpResponse::InternalServerError()
+                        //             .body("Failed to insert earnings data into database");
+                        //     }
+                        // }
                     }
                 }
                 Err(e) => {

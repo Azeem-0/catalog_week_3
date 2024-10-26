@@ -103,10 +103,8 @@ impl EarningsHistoryRepository {
                     "pools": { "$last": "$pools" }
                 }
             },
-            // doc! {"$sort": { "startTime": 1 }},
             doc! {"$skip": skip},
             doc! { "$limit": count as i64 },
-            // doc! {"$sort" : sort_stage},
         ];
 
         let cursor = self.col.aggregate(pipeline, None).await?;
