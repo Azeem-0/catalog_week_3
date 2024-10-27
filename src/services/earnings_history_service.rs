@@ -25,16 +25,24 @@ pub async fn fetch_and_update_earnigns_history(
     match reqwest::get(&url).await {
         Ok(response) => match response.json::<EarningsHistoryResponse>().await {
             Ok(resp) => {
-                for earnings_history in resp.intervals {
-                    match db
-                        .earnings_history_repo
-                        .insert_earnings_history(&earnings_history)
-                        .await
-                    {
-                        Ok(_) => (),
-                        Err(_) => {
-                            eprintln!("Failed to insert earnings data into database");
-                            return false;
+                for mut earnings_history in resp.intervals {
+                    earnings_history.pools = earnings_history
+                        .pools
+                        .into_iter()
+                        .filter(|pool| pool.pool == "BTC.BTC")
+                        .collect();
+
+                    if !earnings_history.pools.is_empty() {
+                        match db
+                            .earnings_history_repo
+                            .insert_earnings_history(&earnings_history)
+                            .await
+                        {
+                            Ok(_) => (),
+                            Err(_) => {
+                                eprintln!("Failed to insert earnings data into database");
+                                return false;
+                            }
                         }
                     }
                 }
