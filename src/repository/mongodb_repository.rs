@@ -30,7 +30,8 @@ impl MongoDB {
             Ok(v) => v.to_string(),
             Err(_) => return Err("Error loading the mongodb uri."),
         };
-        let client = Some(Client::with_uri_str(uri).await.unwrap());
+
+        let client: Option<Client> = Some(Client::with_uri_str(uri).await.unwrap());
 
         let client = match client {
             Some(clt) => clt,

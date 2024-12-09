@@ -52,7 +52,7 @@ pub async fn init_server(db_data: Data<MongoDB>) -> std::io::Result<()> {
 }
 
 pub async fn run() -> std::io::Result<()> {
-    let db_data = init_db().await;
+    let db_data: Result<Data<MongoDB>, Error> = init_db().await;
 
     let db_data = match db_data {
         Ok(data) => {
