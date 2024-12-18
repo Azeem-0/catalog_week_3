@@ -1,5 +1,3 @@
-use core::fmt;
-
 #[derive(Debug)]
 pub enum TimeInterval {
     Hour,
@@ -21,8 +19,6 @@ impl TimeInterval {
             TimeInterval::Year => 31822400,   // 1 year
         }
     }
-
-    // Add a method to convert from string to enum
     pub fn from_str(interval: &str) -> Option<Self> {
         match interval.to_lowercase().as_str() {
             "hour" => Some(TimeInterval::Hour),
@@ -31,7 +27,7 @@ impl TimeInterval {
             "month" => Some(TimeInterval::Month),
             "quarter" => Some(TimeInterval::Quarter),
             "year" => Some(TimeInterval::Year),
-            _ => None, // Return None if the string doesn't match any interval
+            _ => None,
         }
     }
 

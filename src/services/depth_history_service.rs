@@ -61,14 +61,7 @@ pub async fn fetch_and_insert_depth_history(
     db: Data<MongoDB>,
     query: web::Query<QueryParameters>,
 ) -> HttpResponse {
-    // let params = query.into_inner();
-
-    // let mut from: f64 = params.from.clone().unwrap_or_else(|| 1648771200.0);
-    // let count = params.count.unwrap_or_else(|| 400.0);
-    // let interval = params.interval.unwrap_or_else(|| String::from("year"));
-    // let pool = params.pool.unwrap_or_else(|| String::from("BTC.BTC"));
-
-    let (from, count, interval, to, page, sort_by, pool) = query.process_query_parameters();
+    let (from, count, interval, _, _, _, pool) = query.process_query_parameters();
 
     let mut from = from;
     let mut depth_docs_count = 1;

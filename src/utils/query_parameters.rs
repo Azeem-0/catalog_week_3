@@ -1,4 +1,3 @@
-use chrono::Utc;
 use serde::Deserialize;
 
 use super::time_interval::TimeInterval;

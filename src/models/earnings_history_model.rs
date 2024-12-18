@@ -1,7 +1,6 @@
 use std::collections::HashSet;
 
 use crate::utils::deserialize_util::deserialize_string_to_number;
-use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 

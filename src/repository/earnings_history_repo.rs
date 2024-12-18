@@ -8,9 +8,7 @@ use mongodb::{
 };
 
 use crate::{
-    models::earnings_history_model::{
-        EarningsHistory, EarningsHistoryFlattenResponse, EarningsHistoryPool,
-    },
+    models::earnings_history_model::{EarningsHistory, EarningsHistoryPool},
     utils::time_interval::TimeInterval,
 };
 
@@ -59,7 +57,7 @@ impl EarningsHistoryRepository {
         interval: TimeInterval,
         page: i64,
         sort_by: String,
-        pool: String,
+        _: String,
     ) -> Result<Vec<EarningsHistory>, mongodb::error::Error> {
         let filter = doc! {
             "startTime": { "$gte": from },
@@ -72,7 +70,7 @@ impl EarningsHistoryRepository {
             sort_by = String::from("startTime");
         }
 
-        let sort_stage = doc! { &sort_by: -1 };
+        let _ = doc! { &sort_by: -1 };
 
         let skip = (page - 1).max(0) * (count as i64);
 

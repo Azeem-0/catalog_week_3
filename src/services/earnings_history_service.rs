@@ -1,8 +1,6 @@
 use actix_web::web;
 
-use crate::models::earnings_history_model::{
-    EarningsHistory, EarningsHistoryMeta, EarningsHistoryPool,
-};
+use crate::models::earnings_history_model::EarningsHistoryMeta;
 use crate::utils::query_parameters::QueryParameters;
 use crate::{
     models::earnings_history_model::EarningsHistoryResponse,
@@ -65,7 +63,7 @@ pub async fn fetch_and_insert_earnings_history(
     db: Data<MongoDB>,
     query: web::Query<QueryParameters>,
 ) -> HttpResponse {
-    let (from, count, interval, to, page, sort_by, pool) = query.process_query_parameters();
+    let (from, count, interval, _, _, _, _) = query.process_query_parameters();
 
     let mut earnings_docs_count = 0;
     let mut from = from;
